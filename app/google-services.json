@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "425505497041",
+    "project_id": "usctreehole",
+    "storage_bucket": "usctreehole.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:425505497041:android:c158b50044941485cf8af0",
+        "android_client_info": {
+          "package_name": "com.example.usctreehole"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDea13yKyt9Bf726Qp4fAt_5XUdRq65Sjg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

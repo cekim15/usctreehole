@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">usctreehole</string>
+    <string-array name="roles_array">
+        <item>Undergraduate Student</item>
+        <item>Graduate Student</item>
+        <item>Faculty</item>
+        <item>Staff</item>
+    </string-array>
 </resources>
