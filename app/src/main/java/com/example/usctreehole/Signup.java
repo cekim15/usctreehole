@@ -11,13 +11,18 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.graphics.Insets;
+import androidx.core.view.GravityCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.drawerlayout.widget.DrawerLayout;
 
+import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -34,6 +39,7 @@ public class Signup extends AppCompatActivity {
     private StorageReference storageRef;
     private ImageView profilepic;
     private Uri profilepicuri;
+    private DrawerLayout dl;
 
     private final ActivityResultLauncher<Intent> pickImageLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
@@ -59,10 +65,26 @@ public class Signup extends AppCompatActivity {
         View uploadImageButton = findViewById(R.id.uploadImageButton);
         uploadImageButton.setOnClickListener(view -> openFileChooser());
 
-        View goToLogin = findViewById(R.id.goToLogin);
-        goToLogin.setOnClickListener(view -> {
-            Intent intent = new Intent(Signup.this, Login.class);
-            startActivity(intent);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.my_toolbar);
+        setSupportActionBar(toolbar);
+
+        dl = findViewById(R.id.drawer_layout);
+        NavigationView nav = findViewById(R.id.nav_view);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, dl, toolbar,
+                R.string.navigation_drawer_open,
+                R.string.navigation_drawer_close);
+        dl.addDrawerListener(toggle);
+        toggle.syncState();
+
+        nav.setNavigationItemSelectedListener(item -> {
+            int id = item.getItemId();
+            if (id == R.id.nav_login) {
+                Intent intent = new Intent(Signup.this, Login.class);
+                startActivity(intent);
+            }
+            dl.closeDrawer(GravityCompat.START);
+            return true;
         });
 
         View signupButton = findViewById(R.id.signupButton);

@@ -5,13 +5,19 @@ import android.os.Bundle;
 import android.view.View;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+
 import android.util.Log;
 import android.widget.EditText;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -19,6 +25,7 @@ import com.google.firebase.auth.FirebaseUser;
 public class Login extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private static final String TAG = "LoginActivity";
+    private DrawerLayout dl;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,10 +33,26 @@ public class Login extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         setContentView(R.layout.activity_login);
 
-        View goToSignup = findViewById(R.id.goToSignup);
-        goToSignup.setOnClickListener(view -> {
-            Intent intent = new Intent(Login.this, Signup.class);
-            startActivity(intent);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.my_toolbar);
+        setSupportActionBar(toolbar);
+
+        dl = findViewById(R.id.drawer_layout);
+        NavigationView nav = findViewById(R.id.nav_view);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, dl, toolbar,
+                R.string.navigation_drawer_open,
+                R.string.navigation_drawer_close);
+        dl.addDrawerListener(toggle);
+        toggle.syncState();
+
+        nav.setNavigationItemSelectedListener(item -> {
+            int id = item.getItemId();
+            if (id == R.id.nav_signup) {
+                Intent intent = new Intent(Login.this, Signup.class);
+                startActivity(intent);
+            }
+            dl.closeDrawer(GravityCompat.START);
+            return true;
         });
 
         View loginButton = findViewById(R.id.loginButton);
