@@ -52,8 +52,6 @@
                 android:background="#80FFFFFF"
                 android:padding="16dp">
 
-                <!-- Profile Image Overlapping Background Image -->
-
                 <ImageView
                     android:id="@+id/backgroundImageView"
                     android:layout_width="match_parent"
@@ -72,7 +70,6 @@
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent" />
 
-                <!-- Name Text aligned to the right of profile image -->
                 <TextView
                     android:id="@+id/nameTextView"
                     android:layout_width="wrap_content"
@@ -86,7 +83,6 @@
                     app:layout_constraintStart_toEndOf="@id/profileImageView"
                     app:layout_constraintTop_toTopOf="@id/profileImageView" />
 
-                <!-- USC ID Text aligned below the name -->
                 <TextView
                     android:id="@+id/uscIdTextView"
                     android:layout_width="wrap_content"
@@ -99,7 +95,6 @@
                     app:layout_constraintStart_toEndOf="@id/profileImageView"
                     app:layout_constraintTop_toBottomOf="@id/nameTextView" />
 
-                <!-- Role Text aligned below the USC ID -->
                 <TextView
                     android:id="@+id/roleTextView"
                     android:layout_width="wrap_content"
@@ -112,9 +107,18 @@
                     app:layout_constraintStart_toEndOf="@id/profileImageView"
                     app:layout_constraintTop_toBottomOf="@id/uscIdTextView" />
 
-                <!-- Background Image (optional) -->
             </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.cardview.widget.CardView>
+
+        <Button
+            android:id="@+id/editProfileButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:layout_marginEnd="16dp"
+            android:text="Edit Profile"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/studentIdCard" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
