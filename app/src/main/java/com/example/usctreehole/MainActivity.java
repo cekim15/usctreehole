@@ -36,8 +36,6 @@ public class MainActivity extends AppCompatActivity {
             finish();
             return;
         }
-
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.my_toolbar);
@@ -55,7 +53,8 @@ public class MainActivity extends AppCompatActivity {
         nav.setNavigationItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_profile) {
-                // go to profile page
+                Intent intent = new Intent(MainActivity.this, Profile.class);
+                startActivity(intent);
             } else if (id == R.id.nav_logout) {
                 mAuth.signOut();
                 Intent intent = new Intent(MainActivity.this, Login.class);
