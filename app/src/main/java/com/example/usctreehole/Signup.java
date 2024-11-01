@@ -10,14 +10,10 @@ import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.graphics.Insets;
 import androidx.core.view.GravityCompat;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -31,6 +27,7 @@ import com.google.firebase.storage.StorageReference;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class Signup extends AppCompatActivity {
     private FirebaseAuth mAuth;
@@ -65,7 +62,7 @@ public class Signup extends AppCompatActivity {
         View uploadImageButton = findViewById(R.id.uploadImageButton);
         uploadImageButton.setOnClickListener(view -> openFileChooser());
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.my_toolbar);
+        Toolbar toolbar = findViewById(R.id.my_toolbar);
         setSupportActionBar(toolbar);
 
         dl = findViewById(R.id.drawer_layout);
@@ -115,42 +112,40 @@ public class Signup extends AppCompatActivity {
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
-                        String uid = mAuth.getCurrentUser().getUid();
+                        String uid = Objects.requireNonNull(mAuth.getCurrentUser()).getUid();
                         StorageReference fileRef = storageRef.child(uid + ".jpg");
 
-                        // Upload profile picture
+                        // upload pfp
+                        // if the image upload fails, delete the user as well
                         fileRef.putFile(profilepicuri)
-                                .addOnSuccessListener(taskSnapshot -> {
-                                    fileRef.getDownloadUrl().addOnSuccessListener(uri -> {
-                                        // Create a map of user info
-                                        Map<String, Object> userInfo = new HashMap<>();
-                                        userInfo.put("name", name);
-                                        userInfo.put("uscID", uscID);
-                                        userInfo.put("role", role);
-                                        userInfo.put("profilePicUrl", uri.toString());
+                                .addOnSuccessListener(taskSnapshot -> fileRef.getDownloadUrl().addOnSuccessListener(uri -> {
+                                    // map of user info
+                                    Map<String, Object> userInfo = new HashMap<>();
+                                    userInfo.put("name", name);
+                                    userInfo.put("uscID", uscID);
+                                    userInfo.put("role", role);
+                                    userInfo.put("profilePicUrl", uri.toString());
 
-                                        // Save user info to Firestore
-                                        db.collection("users").document(uid)
-                                                .set(userInfo)
-                                                .addOnSuccessListener(aVoid -> {
-                                                    // Navigate to MainActivity after successful user info saving
-                                                    Log.d(TAG, "User info saved");
-                                                    Intent intent = new Intent(Signup.this, MainActivity.class);
-                                                    startActivity(intent);
-                                                    finish(); // Close the Signup activity
-                                                })
-                                                .addOnFailureListener(e -> {
-                                                    // If saving user info fails, delete the user
-                                                    deleteUserAndHandleError(e);
-                                                });
-                                    });
-                                })
-                                .addOnFailureListener(e -> {
-                                    // If the image upload fails, delete the user as well
-                                    deleteUserAndHandleError(e);
-                                });
+                                    // subscription settings
+                                    userInfo.put("lifeSubscription", false);
+                                    userInfo.put("academicSubscription", false);
+                                    userInfo.put("eventSubscription", false);
+
+                                    // saving user info to firestore
+                                    db.collection("users").document(uid)
+                                            .set(userInfo)
+                                            .addOnSuccessListener(aVoid -> {
+                                                // go to main
+                                                Log.d(TAG, "User info saved");
+                                                Intent intent = new Intent(Signup.this, MainActivity.class);
+                                                startActivity(intent);
+                                                finish(); // close signup activity
+                                            })
+                                            .addOnFailureListener(this::deleteUserAndHandleError);
+                                }))
+                                .addOnFailureListener(this::deleteUserAndHandleError);
                     } else {
-                        Toast.makeText(Signup.this, "User creation failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                        Log.d(TAG, "User creation failed");
                     }
                 });
     }
@@ -162,7 +157,7 @@ public class Signup extends AppCompatActivity {
                 if (deleteTask.isSuccessful()) {
                     Toast.makeText(Signup.this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 } else {
-                    Toast.makeText(Signup.this, "Failed to delete user: " + deleteTask.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                    Log.d(TAG, "Couldn't delete user");
                 }
             });
         }

@@ -10,6 +10,7 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -26,13 +27,14 @@ public class Profile extends AppCompatActivity {
     private FirebaseFirestore db;
     private ImageView profileImageView;
     private TextView nameTextView, uscIdTextView, roleTextView;
+    private SwitchCompat lifeNotifications, academicNotifications, eventNotifications;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.my_toolbar);
+        Toolbar toolbar = findViewById(R.id.my_toolbar);
         setSupportActionBar(toolbar);
         dl = findViewById(R.id.drawer_layout);
         NavigationView nav = findViewById(R.id.nav_view);
@@ -62,6 +64,10 @@ public class Profile extends AppCompatActivity {
         uscIdTextView = findViewById(R.id.uscIdTextView);
         roleTextView = findViewById(R.id.roleTextView);
 
+        lifeNotifications = findViewById(R.id.lifeNotifications);
+        academicNotifications = findViewById(R.id.academicNotifications);
+        eventNotifications = findViewById(R.id.eventNotifications);
+
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
         FirebaseUser currentUser = mAuth.getCurrentUser();
@@ -69,11 +75,12 @@ public class Profile extends AppCompatActivity {
             Intent loginIntent = new Intent(Profile.this, Login.class);
             startActivity(loginIntent);
             finish();
-            return;
         }
         else {
             String uid = currentUser.getUid();
             loadUserInfo(uid);
+
+            manageNotificationSettings(uid);
         }
     }
 
@@ -89,6 +96,15 @@ public class Profile extends AppCompatActivity {
                         nameTextView.setText(name);
                         uscIdTextView.setText(uscID);
                         roleTextView.setText(role);
+
+                        boolean lifeSubscribed = Boolean.TRUE.equals(documentSnapshot.getBoolean("lifeSubscription"));
+                        lifeNotifications.setChecked(lifeSubscribed);
+
+                        boolean academicSubscribed = Boolean.TRUE.equals(documentSnapshot.getBoolean("academicSubscription"));
+                        academicNotifications.setChecked(academicSubscribed);
+
+                        boolean eventSubscribed = Boolean.TRUE.equals(documentSnapshot.getBoolean("eventSubscription"));
+                        eventNotifications.setChecked(eventSubscribed);
 
                         if (profilePicUrl != null) {
                             Glide.with(this)
@@ -106,5 +122,22 @@ public class Profile extends AppCompatActivity {
                     Log.e(TAG, "Error retrieving user info: ", e);
                     Toast.makeText(Profile.this, "Failed to load user info", Toast.LENGTH_SHORT).show();
                 });
+    }
+
+    private void manageNotificationSettings(String uid) {
+        lifeNotifications.setOnCheckedChangeListener((buttonView, on) -> db.collection("users").document(uid)
+                .update("lifeSubscription", on)
+                .addOnSuccessListener(aVoid -> Log.d(TAG, "Life notifications updated successfully"))
+                .addOnFailureListener(e -> Log.e(TAG, "Failed to update life notifications", e)));
+
+        academicNotifications.setOnCheckedChangeListener((buttonView, on) -> db.collection("users").document(uid)
+                .update("academicSubscription", on)
+                .addOnSuccessListener(aVoid -> Log.d(TAG, "Academic notifications updated successfully"))
+                .addOnFailureListener(e -> Log.e(TAG, "Failed to update academic notifications", e)));
+
+        eventNotifications.setOnCheckedChangeListener((buttonView, on) -> db.collection("users").document(uid)
+                .update("eventSubscription", on)
+                .addOnSuccessListener(aVoid -> Log.d(TAG, "Event notifications updated successfully"))
+                .addOnFailureListener(e -> Log.e(TAG, "Failed to update event notifications", e)));
     }
 }
