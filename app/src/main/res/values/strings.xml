@@ -8,4 +8,9 @@
         <item>Faculty</item>
         <item>Staff</item>
     </string-array>
+    <string-array name="categories_array">
+        <item>Life</item>
+        <item>Academic</item>
+        <item>Event</item>
+    </string-array>
 </resources>

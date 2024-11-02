@@ -15,6 +15,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -33,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
     private PostAdapter postAdapter;
     private List<Post> posts = new ArrayList<>();
     private static final String TAG = "MainActivity";
+    private String viewing;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,12 +85,19 @@ public class MainActivity extends AppCompatActivity {
         postAdapter = new PostAdapter(posts);
         rv.setAdapter(postAdapter);
 
+        viewing = "lifePosts";
         fetchPosts();
+
+        FloatingActionButton createPost = findViewById(R.id.create_post);
+        createPost.setOnClickListener(view -> {
+            Intent intent = new Intent(MainActivity.this, CreatePost.class);
+            startActivity(intent);
+        });
     }
 
     @SuppressLint("NotifyDataSetChanged")
     private void fetchPosts() {
-        db.collection("lifePosts")
+        db.collection(viewing)
                 .orderBy("timestamp", Query.Direction.DESCENDING)
                 .get()
                 .addOnCompleteListener(task -> {
@@ -97,6 +106,7 @@ public class MainActivity extends AppCompatActivity {
                         for (QueryDocumentSnapshot document : task.getResult()) {
                             Post post = document.toObject(Post.class);
                             posts.add(post);
+                            Log.d(TAG, "Adding post: " + post.getTitle());
                         }
                         postAdapter.notifyDataSetChanged();
                     } else {

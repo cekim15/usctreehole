@@ -49,5 +49,6 @@ dependencies {
     androidTestImplementation(libs.espresso.core)
     implementation(libs.appcompat.v161)
     implementation(libs.recyclerview)
+    implementation(libs.material.v190)
 
 }

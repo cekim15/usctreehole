@@ -1,5 +1,6 @@
 package com.example.usctreehole;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,10 +11,11 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
 public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder> {
-    private final List<Post> postList;
+    private final List<Post> posts;
+    private static final String TAG = "PostAdapter";
 
-    public PostAdapter(List<Post> postList) {
-        this.postList = postList;
+    public PostAdapter(List<Post> posts) {
+        this.posts = posts;
     }
 
     @NonNull
@@ -25,7 +27,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
 
     @Override
     public void onBindViewHolder(@NonNull PostViewHolder holder, int position) {
-        Post post = postList.get(position);
+        Post post = posts.get(position);
         holder.title.setText(post.getTitle());
         holder.author.setText(post.getUname());
         holder.content.setText(post.getContent());
@@ -34,7 +36,8 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
 
     @Override
     public int getItemCount() {
-        return postList.size();
+        Log.d(TAG, "number of posts: " + posts.size());
+        return posts.size();
     }
 
     public static class PostViewHolder extends RecyclerView.ViewHolder {
