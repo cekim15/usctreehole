@@ -48,5 +48,6 @@ dependencies {
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
     implementation(libs.appcompat.v161)
+    implementation(libs.recyclerview)
 
 }
