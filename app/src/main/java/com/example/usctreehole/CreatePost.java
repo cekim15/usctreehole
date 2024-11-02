@@ -23,15 +23,12 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class CreatePost extends AppCompatActivity {
 
     private DrawerLayout dl;
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
-    private PostAdapter postAdapter;
-    private List<Post> posts = new ArrayList<>();
     private static final String TAG = "CreatePost";
     private String collection;
 
@@ -138,9 +135,7 @@ public class CreatePost extends AppCompatActivity {
                                     });
                         }
                     })
-                    .addOnFailureListener(e -> {
-                        Log.e(TAG, "Error getting user name: ", e);
-                    });
+                    .addOnFailureListener(e -> Log.e(TAG, "Error getting user name: ", e));
         }
     }
 
