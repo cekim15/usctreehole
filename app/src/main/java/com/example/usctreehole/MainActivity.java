@@ -60,12 +60,15 @@ public class MainActivity extends AppCompatActivity {
 
         rv = findViewById(R.id.recycler_view);
         rv.setLayoutManager(new LinearLayoutManager(this));
+        postAdapter = new PostAdapter(new ArrayList<>(), this, viewing);
+        rv.setAdapter(postAdapter);
         selectedCategory();
         Log.d(TAG, viewing);
 
         FloatingActionButton createPost = findViewById(R.id.create_post);
         createPost.setOnClickListener(view -> {
             Intent intent = new Intent(MainActivity.this, CreatePost.class);
+            intent.putExtra("viewing", viewing);
             startActivity(intent);
         });
     }

@@ -31,6 +31,7 @@ public class CreatePost extends AppCompatActivity {
     private FirebaseFirestore db;
     private static final String TAG = "CreatePost";
     private String collection;
+    private Spinner categorySelect;
     private String category;
 
     @Override
@@ -52,9 +53,20 @@ public class CreatePost extends AppCompatActivity {
         ImageView notifications = findViewById(R.id.notification_bell);
         notifications.setOnClickListener(v -> openNotifications());
 
+        Intent fromMain = getIntent();
+        String viewing = fromMain.getStringExtra("viewing");
+        categorySelect = findViewById(R.id.categorySelect);
+        if (viewing.equals("academicPosts")) {
+            categorySelect.setSelection(1);
+        } else if (viewing.equals("eventPosts")) {
+            categorySelect.setSelection(2);
+        }
+
         Button cancelPost = findViewById(R.id.cancel_post);
         cancelPost.setOnClickListener(view -> {
             Intent intent = new Intent(CreatePost.this, MainActivity.class);
+            category = categorySelect.getSelectedItem().toString();
+            intent.putExtra("category", category);
             startActivity(intent);
         });
 
@@ -62,7 +74,7 @@ public class CreatePost extends AppCompatActivity {
         submitPost.setOnClickListener(view -> {
             String title = ((EditText) findViewById(R.id.enterPostTitle)).getText().toString();
             String content = ((EditText) findViewById(R.id.enterPostContent)).getText().toString();
-            Spinner categorySelect = findViewById(R.id.categorySelect);
+            categorySelect = findViewById(R.id.categorySelect);
             category = categorySelect.getSelectedItem().toString();
 
             if (category.equals("Life")) {
