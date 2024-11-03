@@ -46,35 +46,7 @@ public class CreatePost extends AppCompatActivity {
             return;
         }
         setContentView(R.layout.activity_create_post);
-
-        Toolbar toolbar = findViewById(R.id.my_toolbar);
-        setSupportActionBar(toolbar);
-
-        dl = findViewById(R.id.drawer_layout);
-        NavigationView nav = findViewById(R.id.nav_view);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, dl, toolbar,
-                R.string.navigation_drawer_open,
-                R.string.navigation_drawer_close);
-        dl.addDrawerListener(toggle);
-        toggle.syncState();
-
-        nav.setNavigationItemSelectedListener(item -> {
-            int id = item.getItemId();
-            if (id == R.id.nav_profile) {
-                Intent intent = new Intent(CreatePost.this, Profile.class);
-                startActivity(intent);
-            } else if (id == R.id.nav_logout) {
-                mAuth.signOut();
-                Intent intent = new Intent(CreatePost.this, Login.class);
-                startActivity(intent);
-            } else if (id == R.id.nav_home) {
-                Intent intent = new Intent(CreatePost.this, MainActivity.class);
-                startActivity(intent);
-            }
-            dl.closeDrawer(GravityCompat.START);
-            return true;
-        });
+        setUpToolbar();
 
         ImageView notifications = findViewById(R.id.notification_bell);
         notifications.setOnClickListener(v -> openNotifications());
@@ -137,6 +109,37 @@ public class CreatePost extends AppCompatActivity {
                     })
                     .addOnFailureListener(e -> Log.e(TAG, "Error getting user name: ", e));
         }
+    }
+
+    private void setUpToolbar() {
+        Toolbar toolbar = findViewById(R.id.my_toolbar);
+        setSupportActionBar(toolbar);
+
+        dl = findViewById(R.id.drawer_layout);
+        NavigationView nav = findViewById(R.id.nav_view);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, dl, toolbar,
+                R.string.navigation_drawer_open,
+                R.string.navigation_drawer_close);
+        dl.addDrawerListener(toggle);
+        toggle.syncState();
+
+        nav.setNavigationItemSelectedListener(item -> {
+            int id = item.getItemId();
+            if (id == R.id.nav_profile) {
+                Intent intent = new Intent(CreatePost.this, Profile.class);
+                startActivity(intent);
+            } else if (id == R.id.nav_logout) {
+                mAuth.signOut();
+                Intent intent = new Intent(CreatePost.this, Login.class);
+                startActivity(intent);
+            } else if (id == R.id.nav_home) {
+                Intent intent = new Intent(CreatePost.this, MainActivity.class);
+                startActivity(intent);
+            }
+            dl.closeDrawer(GravityCompat.START);
+            return true;
+        });
     }
 
     private void openNotifications() {

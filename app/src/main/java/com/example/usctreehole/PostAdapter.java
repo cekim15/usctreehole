@@ -1,5 +1,7 @@
 package com.example.usctreehole;
 
+import android.content.Context;
+import android.content.Intent;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,11 +13,15 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
 public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder> {
-    private final List<Post> posts;
     private static final String TAG = "PostAdapter";
+    private final List<Post> posts;
+    private Context context;
+    private String collection;
 
-    public PostAdapter(List<Post> posts) {
+    public PostAdapter(List<Post> posts, Context context, String collection) {
         this.posts = posts;
+        this.context = context;
+        this.collection = collection;
     }
 
     @NonNull
@@ -32,16 +38,24 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
         holder.author.setText(post.getUname());
         holder.content.setText(post.getContent());
         holder.timestamp.setText(String.valueOf(post.getTimestampAsDate()));
+
+        holder.view_replies.setOnClickListener(v -> {
+            Intent intent = new Intent(context, ViewReplies.class);
+            intent.putExtra("postID", post.getPid());
+            intent.putExtra("collection", collection);
+            Log.d(TAG, collection);
+            context.startActivity(intent);
+        });
     }
 
     @Override
     public int getItemCount() {
-        Log.d(TAG, "number of posts: " + posts.size());
+        //Log.d(TAG, "number of posts: " + posts.size());
         return posts.size();
     }
 
     public static class PostViewHolder extends RecyclerView.ViewHolder {
-        TextView title, author, content, timestamp;
+        TextView title, author, content, timestamp, view_replies;
 
         public PostViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -49,6 +63,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
             author = itemView.findViewById(R.id.post_author);
             content = itemView.findViewById(R.id.post_content);
             timestamp = itemView.findViewById(R.id.post_timestamp);
+            view_replies = itemView.findViewById(R.id.post_view_replies);
         }
     }
 }

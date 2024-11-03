@@ -51,6 +51,51 @@ public class MainActivity extends AppCompatActivity {
         }
         setContentView(R.layout.activity_main);
 
+        setUpToolbar();
+        viewing = "lifePosts";
+
+        ImageView notifications = findViewById(R.id.notification_bell);
+        notifications.setOnClickListener(v -> openNotifications());
+
+        rv = findViewById(R.id.recycler_view);
+        rv.setLayoutManager(new LinearLayoutManager(this));
+        postAdapter = new PostAdapter(posts, this, viewing);
+        rv.setAdapter(postAdapter);
+
+        fetchPosts();
+
+        FloatingActionButton createPost = findViewById(R.id.create_post);
+        createPost.setOnClickListener(view -> {
+            Intent intent = new Intent(MainActivity.this, CreatePost.class);
+            startActivity(intent);
+        });
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    private void fetchPosts() {
+        db.collection(viewing)
+                .orderBy("timestamp", Query.Direction.DESCENDING)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        posts.clear();
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            Post post = document.toObject(Post.class);
+                            String pid = document.getId();
+                            post.setPid(pid);
+                            Log.d(TAG, pid);
+                            posts.add(post);
+                            Log.d(TAG, "Adding post: " + post.getTitle());
+                        }
+                        postAdapter.notifyDataSetChanged();
+                    } else {
+                        Log.w(TAG, "Error getting posts.", task.getException());
+                        Toast.makeText(MainActivity.this, "Failed to load posts", Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    private void setUpToolbar() {
         Toolbar toolbar = findViewById(R.id.my_toolbar);
         setSupportActionBar(toolbar);
 
@@ -76,44 +121,6 @@ public class MainActivity extends AppCompatActivity {
             dl.closeDrawer(GravityCompat.START);
             return true;
         });
-
-        ImageView notifications = findViewById(R.id.notification_bell);
-        notifications.setOnClickListener(v -> openNotifications());
-
-        rv = findViewById(R.id.recycler_view);
-        rv.setLayoutManager(new LinearLayoutManager(this));
-        postAdapter = new PostAdapter(posts);
-        rv.setAdapter(postAdapter);
-
-        viewing = "lifePosts";
-        fetchPosts();
-
-        FloatingActionButton createPost = findViewById(R.id.create_post);
-        createPost.setOnClickListener(view -> {
-            Intent intent = new Intent(MainActivity.this, CreatePost.class);
-            startActivity(intent);
-        });
-    }
-
-    @SuppressLint("NotifyDataSetChanged")
-    private void fetchPosts() {
-        db.collection(viewing)
-                .orderBy("timestamp", Query.Direction.DESCENDING)
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        posts.clear();
-                        for (QueryDocumentSnapshot document : task.getResult()) {
-                            Post post = document.toObject(Post.class);
-                            posts.add(post);
-                            Log.d(TAG, "Adding post: " + post.getTitle());
-                        }
-                        postAdapter.notifyDataSetChanged();
-                    } else {
-                        Log.w(TAG, "Error getting posts.", task.getException());
-                        Toast.makeText(MainActivity.this, "Failed to load posts", Toast.LENGTH_SHORT).show();
-                    }
-                });
     }
 
     private void openNotifications() {

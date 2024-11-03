@@ -35,14 +35,17 @@ import java.util.List;
 import java.util.Map;
 
 public class EditProfile extends AppCompatActivity {
+    private static final String TAG = "EditProfile";
 
     private DrawerLayout dl;
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
-    private static final String TAG = "EditProfile";
+
     private StorageReference storageRef;
     private ImageView profileImageView;
     private Uri profilepicuri;
+
+    String old_name, old_ID, old_role, old_profileUrl;
 
     private final ActivityResultLauncher<Intent> pickImageLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
@@ -83,6 +86,170 @@ public class EditProfile extends AppCompatActivity {
         }
         setContentView(R.layout.activity_edit_profile);
 
+        setUpToolbar();
+
+        ImageView notifications = findViewById(R.id.notification_bell);
+        notifications.setOnClickListener(v -> openNotifications());
+
+        Intent oldInfo = getIntent();
+        populateWithOld(oldInfo);
+
+        storageRef = FirebaseStorage.getInstance().getReference("profile_pics");
+        View uploadImageButton = findViewById(R.id.uploadNewImageButton);
+        uploadImageButton.setOnClickListener(view -> openFileChooser());
+
+        // go back to profile page without saving changes
+        Button cancelEdit = findViewById(R.id.cancel_profile_edit);
+        cancelEdit.setOnClickListener(view -> {
+            Intent intent = new Intent(EditProfile.this, Profile.class);
+            startActivity(intent);
+            finish();
+        });
+
+        // try and save changes to the database
+        Button saveEdit = findViewById(R.id.save_profile_edit);
+        saveEdit.setOnClickListener(view -> {
+            saveProfileEdits();
+        });
+    }
+
+    private void openFileChooser() {
+        Intent intent = new Intent();
+        intent.setType("image/*");
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        pickImageLauncher.launch(Intent.createChooser(intent, "Select Picture"));
+    }
+
+    private void saveProfileEdits() {
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser == null) {
+            Intent loginIntent = new Intent(EditProfile.this, Login.class);
+            startActivity(loginIntent);
+            finish();
+        } else {
+            String uid = currentUser.getUid();
+
+            Map<String, Object> changedFields = new HashMap<>();
+            getChangedFields(changedFields, uid);
+
+            db.collection("users").document(uid)
+                    .update(changedFields)
+                    .addOnSuccessListener(aVoid -> {
+                        Log.d("TAG", "DocumentSnapshot successfully updated!");
+                        Toast.makeText(EditProfile.this, "Profile updated successfully", Toast.LENGTH_SHORT).show();
+                        Intent intent = new Intent(EditProfile.this, Profile.class);
+                        startActivity(intent);
+                        finish();
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.w("TAG", "Error updating document", e);
+                        Toast.makeText(EditProfile.this, "Failed to update profile", Toast.LENGTH_SHORT).show();
+                    });
+        }
+    }
+
+    private void getChangedFields(Map<String, Object> changedFields, String uid) {
+        String editedName = ((EditText) findViewById(R.id.enterName)).getText().toString();
+        String editedID = ((EditText) findViewById(R.id.enterID)).getText().toString();
+        Spinner roleSelect = findViewById(R.id.roleSelect);
+        String editedRole = roleSelect.getSelectedItem().toString();
+        String newProfileUrl = "";
+        boolean changed_pic = false;
+        if (profilepicuri != null) {
+            newProfileUrl = profilepicuri.toString();
+            if (!old_profileUrl.equals(newProfileUrl)) {
+                changed_pic = true;
+                Log.d(TAG, "Changed pfp");
+            }
+        }
+
+        if (!old_name.equals(editedName)) {
+            changedFields.put("name",editedName);
+            Log.d(TAG, "Name changed to: " + editedName);
+        }
+        if (!old_ID.equals(editedID)) {
+            changedFields.put("uscID", editedID);
+            Log.d(TAG, "ID changed to: " + editedID);
+        }
+        if (!old_role.equals(editedRole)) {
+            changedFields.put("role", editedRole);
+            Log.d(TAG, "Role changed to: " + editedRole);
+        }
+
+        if (changed_pic) {
+            db.collection("users").document(uid).get()
+                    .addOnSuccessListener(documentSnapshot -> {
+                        if (documentSnapshot.exists()) {
+                            String old_pfp = documentSnapshot.getString("profilePicUrl");
+                            if (old_pfp != null) {
+                                deleteOldPfp(old_pfp);
+                            }
+                        }
+                        StorageReference fileReference = storageRef.child(uid + ".jpg");
+                        fileReference.putFile(profilepicuri)
+                                .addOnSuccessListener(taskSnapshot -> {
+                                    fileReference.getDownloadUrl().addOnSuccessListener(uri -> {
+                                        String urlToSave = uri.toString();
+                                        changedFields.put("profilePicUrl", urlToSave);
+                                    });
+                                })
+                                .addOnFailureListener(e -> {
+                                    Log.e(TAG, "Error uploading new profile picture: ", e);
+                                    Toast.makeText(EditProfile.this, "Failed to upload profile picture", Toast.LENGTH_SHORT).show();
+                                });
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "Error fetching profile data: ", e);
+                        Toast.makeText(EditProfile.this, "Failed to fetch profile data", Toast.LENGTH_SHORT).show();
+                    });
+        }
+    }
+
+    private void populateWithOld(Intent oldInfo) {
+        old_name = oldInfo.getStringExtra("name");
+        old_ID = oldInfo.getStringExtra("uscID");
+        old_role = oldInfo.getStringExtra("role");
+        old_profileUrl = oldInfo.getStringExtra("profilePicUrl");
+
+        ((EditText) findViewById(R.id.enterName)).setText(old_name);
+        ((EditText) findViewById(R.id.enterID)).setText(old_ID);
+        Spinner roleSelect = findViewById(R.id.roleSelect);
+
+        if (old_role.equals("Graduate Student")) {
+            roleSelect.setSelection(1);
+        } else if (old_role.equals("Faculty")) {
+            roleSelect.setSelection(2);
+        } else if (old_role.equals("Staff")) {
+            roleSelect.setSelection(3);
+        }
+
+        profileImageView = findViewById(R.id.imageViewProfilePic);
+        loadImage(profileImageView, old_profileUrl);
+    }
+
+    private void loadImage(ImageView iv, String url) {
+        if (url != null) {
+            try {
+                Glide.with(this)
+                        .load(old_profileUrl)
+                        .override(100, 100)
+                        .placeholder(R.drawable.blank_profile_pic)
+                        .into(profileImageView);
+            } catch (Error e) {
+                Log.e(TAG, "Out of memory error while loading image", e);
+                Toast.makeText(this, "Failed to load image. Please try again.", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    private void deleteOldPfp(String old_pfp) {
+        StorageReference old_file = FirebaseStorage.getInstance().getReferenceFromUrl(old_pfp);
+        old_file.delete()
+                .addOnSuccessListener(aVoid -> Log.d(TAG, "Old profile picture deleted successfully"))
+                .addOnFailureListener(e -> Log.e(TAG, "Error deleting old profile picture: ", e));
+    }
+
+    private void setUpToolbar() {
         Toolbar toolbar = findViewById(R.id.my_toolbar);
         setSupportActionBar(toolbar);
 
@@ -111,151 +278,6 @@ public class EditProfile extends AppCompatActivity {
             dl.closeDrawer(GravityCompat.START);
             return true;
         });
-
-        ImageView notifications = findViewById(R.id.notification_bell);
-        notifications.setOnClickListener(v -> openNotifications());
-
-        Intent oldInfo = getIntent();
-
-        String name = oldInfo.getStringExtra("name");
-        String uscID = oldInfo.getStringExtra("uscID");
-        String role = oldInfo.getStringExtra("role");
-        String profilePicUrl = oldInfo.getStringExtra("profilePicUrl");
-
-        ((EditText) findViewById(R.id.enterName)).setText(name);
-        ((EditText) findViewById(R.id.enterID)).setText(uscID);
-        Spinner roleSelect = findViewById(R.id.roleSelect);
-
-        if (role.equals("Graduate Student")) {
-            roleSelect.setSelection(1);
-        } else if (role.equals("Faculty")) {
-            roleSelect.setSelection(2);
-        } else if (role.equals("Staff")) {
-            roleSelect.setSelection(3);
-        }
-
-        profileImageView = findViewById(R.id.imageViewProfilePic);
-
-        if (profilePicUrl != null) {
-            try {
-                Glide.with(this)
-                        .load(profilePicUrl)
-                        .override(100, 100)
-                        .skipMemoryCache(true)
-                        .placeholder(R.drawable.blank_profile_pic)
-                        .into(profileImageView);
-            } catch (Error e) {
-                Log.e(TAG, "Out of memory error while loading image", e);
-                Toast.makeText(this, "Failed to load image. Please try again.", Toast.LENGTH_SHORT).show();
-            }
-        }
-
-        storageRef = FirebaseStorage.getInstance().getReference("profile_pics");
-        View uploadImageButton = findViewById(R.id.uploadImageButton);
-        uploadImageButton.setOnClickListener(view -> openFileChooser());
-
-        Button cancelEdit = findViewById(R.id.cancel_profile_edit);
-        cancelEdit.setOnClickListener(view -> {
-            Intent intent = new Intent(EditProfile.this, Profile.class);
-            startActivity(intent);
-            finish();
-        });
-
-        Button saveEdit = findViewById(R.id.save_profile_edit);
-        saveEdit.setOnClickListener(view -> {
-            saveProfileEdits();
-        });
-    }
-
-    private void openFileChooser() {
-        Intent intent = new Intent();
-        intent.setType("image/*");
-        intent.setAction(Intent.ACTION_GET_CONTENT);
-        pickImageLauncher.launch(Intent.createChooser(intent, "Select Picture"));
-    }
-
-    private void saveProfileEdits() {
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser == null) {
-            Intent loginIntent = new Intent(EditProfile.this, Login.class);
-            startActivity(loginIntent);
-            finish();
-        } else {
-            String uid = currentUser.getUid();
-            String editedName = ((EditText) findViewById(R.id.enterName)).getText().toString();
-            String editedID = ((EditText) findViewById(R.id.enterID)).getText().toString();
-            Spinner roleSelect = findViewById(R.id.roleSelect);
-            String editedRole = roleSelect.getSelectedItem().toString();
-
-            Map<String, Object> newProfile = new HashMap<>();
-            newProfile.put("name", editedName);
-            newProfile.put("uscID", editedID);
-            newProfile.put("role", editedRole);
-
-            if (profilepicuri != null) {
-                db.collection("users").document(uid).get()
-                        .addOnSuccessListener(documentSnapshot -> {
-                            if (documentSnapshot.exists()) {
-                                String old_pfp = documentSnapshot.getString("profilePicUrl");
-                                if (old_pfp != null) {
-                                    deleteOldPfp(old_pfp);
-                                }
-
-                                StorageReference fileReference = storageRef.child(uid + ".jpg");
-                                fileReference.putFile(profilepicuri)
-                                        .addOnSuccessListener(taskSnapshot -> {
-                                            fileReference.getDownloadUrl().addOnSuccessListener(uri -> {
-
-                                                String profilePicUrl = uri.toString();
-                                                newProfile.put("profilePicUrl", profilePicUrl);
-
-                                                db.collection("users").document(uid)
-                                                        .set(newProfile, SetOptions.merge())
-                                                        .addOnSuccessListener(aVoid -> {
-                                                            Toast.makeText(EditProfile.this, "Profile updated successfully", Toast.LENGTH_SHORT).show();
-                                                            Intent intent = new Intent(EditProfile.this, Profile.class);
-                                                            startActivity(intent);
-                                                            finish();
-                                                        })
-                                                        .addOnFailureListener(e -> {
-                                                            Log.e(TAG, "Error updating profile: ", e);
-                                                            Toast.makeText(EditProfile.this, "Failed to update profile", Toast.LENGTH_SHORT).show();
-                                                        });
-                                            });
-                                        })
-                                        .addOnFailureListener(e -> {
-                                            Log.e(TAG, "Error uploading new profile picture: ", e);
-                                            Toast.makeText(EditProfile.this, "Failed to upload profile picture", Toast.LENGTH_SHORT).show();
-                                        });
-                            }
-                        })
-                        .addOnFailureListener(e -> {
-                            Log.e(TAG, "Error fetching profile data: ", e);
-                            Toast.makeText(EditProfile.this, "Failed to fetch profile data", Toast.LENGTH_SHORT).show();
-                        });
-            } else {
-                db.collection("users").document(uid)
-                        .set(newProfile, SetOptions.merge())
-                        .addOnSuccessListener(aVoid -> {
-                            Toast.makeText(EditProfile.this, "Profile updated successfully", Toast.LENGTH_SHORT).show();
-                            Intent intent = new Intent(EditProfile.this, Profile.class);
-                            startActivity(intent);
-                            finish();
-                        })
-                        .addOnFailureListener(e -> {
-                            Log.e(TAG, "Error updating profile: ", e);
-                            Toast.makeText(EditProfile.this, "Failed to update profile", Toast.LENGTH_SHORT).show();
-                        });
-            }
-        }
-    }
-
-
-    private void deleteOldPfp(String old_pfp) {
-        StorageReference old_file = FirebaseStorage.getInstance().getReferenceFromUrl(old_pfp);
-        old_file.delete()
-                .addOnSuccessListener(aVoid -> Log.d(TAG, "Old profile picture deleted successfully"))
-                .addOnFailureListener(e -> Log.e(TAG, "Error deleting old profile picture: ", e));
     }
 
     private void openNotifications() {

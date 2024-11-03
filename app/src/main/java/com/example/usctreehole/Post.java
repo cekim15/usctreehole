@@ -6,6 +6,7 @@ import java.util.Date;
 
 public class Post {
     private String uid;
+    private String pid;
     private String uname;
     private String title;
     private String content;
@@ -19,6 +20,13 @@ public class Post {
         this.title = title;
         this.content = content;
         this.timestamp = timestamp;
+    }
+
+    public void setPid(String pid) {
+        this.pid = pid;
+    }
+    public String getPid() {
+        return pid;
     }
 
     public String getUid() {
