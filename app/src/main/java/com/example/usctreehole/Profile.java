@@ -3,7 +3,10 @@ package com.example.usctreehole;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -15,6 +18,8 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.signature.ObjectKey;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -28,11 +33,14 @@ public class Profile extends AppCompatActivity {
     private ImageView profileImageView;
     private TextView nameTextView, uscIdTextView, roleTextView;
     private SwitchCompat lifeNotifications, academicNotifications, eventNotifications;
+    private Intent editIntent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
+
+        editIntent = new Intent(Profile.this, EditProfile.class);
 
         Toolbar toolbar = findViewById(R.id.my_toolbar);
         setSupportActionBar(toolbar);
@@ -82,6 +90,12 @@ public class Profile extends AppCompatActivity {
 
             manageNotificationSettings(uid);
         }
+
+        Button editProfileButton = findViewById(R.id.editProfileButton);
+        editProfileButton.setOnClickListener(view -> {
+            startActivity(editIntent);
+            finish();
+        });
     }
 
     private void loadUserInfo(String uid) {
@@ -92,6 +106,11 @@ public class Profile extends AppCompatActivity {
                         String uscID = documentSnapshot.getString("uscID");
                         String role = documentSnapshot.getString("role");
                         String profilePicUrl = documentSnapshot.getString("profilePicUrl");
+
+                        editIntent.putExtra("name", name);
+                        editIntent.putExtra("uscID", uscID);
+                        editIntent.putExtra("role", role);
+                        editIntent.putExtra("profilePicUrl", profilePicUrl);
 
                         nameTextView.setText(name);
                         uscIdTextView.setText(uscID);
@@ -107,11 +126,17 @@ public class Profile extends AppCompatActivity {
                         eventNotifications.setChecked(eventSubscribed);
 
                         if (profilePicUrl != null) {
-                            Glide.with(this)
-                                    .load(profilePicUrl)
-                                    .override(200, 200)
-                                    .placeholder(R.drawable.blank_profile_pic)
-                                    .into(profileImageView);
+                            try {
+                                Glide.with(this)
+                                        .load(profilePicUrl)
+                                        .override(100, 100)
+                                        .placeholder(R.drawable.blank_profile_pic)
+                                        .error(R.drawable.blank_profile_pic)
+                                        .into(profileImageView);
+                            } catch (Exception e) {
+                                Log.e(TAG, "Out of memory error while loading image", e);
+                                Toast.makeText(this, "Failed to load image. Please try again.", Toast.LENGTH_SHORT).show();
+                            }
                         }
                         else {
                             Toast.makeText(Profile.this, "User info not found", Toast.LENGTH_SHORT).show();
