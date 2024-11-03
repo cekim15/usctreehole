@@ -3,6 +3,9 @@ package com.example.usctreehole;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -11,13 +14,21 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.navigation.NavigationView;
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
-public class ViewReplies extends AppCompatActivity {
+import java.util.ArrayList;
+import java.util.List;
+
+public class ViewReplies extends AppCompatActivity implements ReplyAdapter.ReplyingToReplyListener {
     private static final String TAG = "ViewReplies";
     private DrawerLayout dl;
     private FirebaseAuth mAuth;
@@ -25,14 +36,19 @@ public class ViewReplies extends AppCompatActivity {
     private String collection;
     private String postID;
     private TextView title, author, content, timestamp;
-    private RecyclerView repliesRecyclerView;
-    //private ReplyAdapter replyAdapter;
+    private RecyclerView rrv;
+    private ReplyAdapter replyAdapter;
+    private List<Reply> replies = new ArrayList<>();
+    private boolean rtr;
+    private Reply parentReply;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view_replies);
         setUpToolbar();
+        ImageView notifications = findViewById(R.id.notification_bell);
+        notifications.setOnClickListener(v -> openNotifications());
 
         mAuth = FirebaseAuth.getInstance();
 
@@ -47,6 +63,121 @@ public class ViewReplies extends AppCompatActivity {
 
         Log.d(TAG, collection);
         displayPost();
+
+        rrv = findViewById(R.id.replies_recycler_view);
+        rrv.setLayoutManager(new LinearLayoutManager(this));
+        fetchReplies();
+
+        rtr = false;
+
+        ImageButton send_reply = findViewById(R.id.send_reply_button);
+        send_reply.setOnClickListener(view -> {
+            createReply();
+        });
+    }
+
+    private void fetchReplies() {
+        Log.d(TAG, "fetching replies in " + collection + " for post " + postID);
+        db.collection(collection)
+                .document(postID)
+                .collection("replies")
+                .orderBy("timestamp", Query.Direction.DESCENDING)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        replies.clear();
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            Reply reply = document.toObject(Reply.class);
+                            String rid = document.getId();
+                            reply.setRid(rid);
+                            replies.add(reply);
+                            Log.d(TAG, "Loading reply: " + reply.getRid());
+                            fetchNestedReplies(reply);
+                        }
+                        replyAdapter = new ReplyAdapter(replies, this, postID, this);
+                        rrv.setAdapter(replyAdapter);
+                    } else {
+                        Log.w(TAG, "Error getting replies.", task.getException());
+                        Toast.makeText(ViewReplies.this, "Failed to load replies", Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    private void fetchNestedReplies(Reply parentReply) {
+        db.collection(collection).document(postID)
+                .collection("replies").document(parentReply.getRid()).collection("replies")
+                .orderBy("timestamp", Query.Direction.DESCENDING)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            Reply nestedReply = document.toObject(Reply.class);
+                            replies.add(nestedReply);
+                        }
+                    } else {
+                        Log.w(TAG, "Error getting nested replies.", task.getException());
+                    }
+                });
+    }
+
+    @Override
+    public void onReplyToReply(Reply reply) {
+        Log.d(TAG, "Replying to reply with ID: " + reply.getRid());
+        EditText replyEditText = findViewById(R.id.reply_edit_text);
+        String newHint = "Replying to " + reply.getName() + ": ";
+        replyEditText.setHint(newHint);
+        replyEditText.requestFocus();
+        rtr = true;
+        parentReply = reply;
+    }
+
+    private void createReply() {
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser == null) {
+            Intent loginIntent = new Intent(ViewReplies.this, Login.class);
+            startActivity(loginIntent);
+            finish();
+        }
+        else {
+            String uid = currentUser.getUid();
+            db.collection(collection).document(postID).get()
+                    .addOnSuccessListener(documentSnapshot -> {
+                        if (documentSnapshot.exists()) {
+                            String content = ((EditText) findViewById(R.id.reply_edit_text)).getText().toString();
+                            Timestamp timestamp = Timestamp.now();
+                            Reply reply = new Reply(uid, content, timestamp, false, "Anonymous", rtr);
+
+                            if (!rtr) {
+                                db.collection(collection).document(postID).collection("replies")
+                                        .add(reply)
+                                        .addOnSuccessListener(documentReference -> {
+                                            Toast.makeText(this, "Reply posted successfully", Toast.LENGTH_SHORT).show();
+                                            ((EditText) findViewById(R.id.reply_edit_text)).setText("");
+                                        })
+                                        .addOnFailureListener(e -> {
+                                            Log.d(TAG, "Could not add reply");
+                                            Toast.makeText(this, "Error adding reply: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                        });
+                            }
+                            else {
+                                String parentRid = parentReply.getRid();
+                                db.collection(collection).document(postID).collection("replies")
+                                        .document(parentRid).collection("replies")
+                                        .add(reply)
+                                        .addOnSuccessListener(documentReference -> {
+                                            Toast.makeText(this, "Reply posted successfully", Toast.LENGTH_SHORT).show();
+                                            ((EditText) findViewById(R.id.reply_edit_text)).setText("");
+                                        })
+                                        .addOnFailureListener(e -> {
+                                            Log.d(TAG, "Could not add reply");
+                                            Toast.makeText(this, "Error adding reply: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                        });
+                            }
+                        }
+                    })
+                    .addOnFailureListener(e -> Log.e(TAG, "Error: ", e));
+        }
+        fetchReplies();
     }
 
     private void displayPost() {
@@ -98,5 +229,10 @@ public class ViewReplies extends AppCompatActivity {
             dl.closeDrawer(GravityCompat.START);
             return true;
         });
+    }
+
+    private void openNotifications() {
+        // open notifications screen?
+        Toast.makeText(this, "Notifications Clicked", Toast.LENGTH_SHORT).show();
     }
 }

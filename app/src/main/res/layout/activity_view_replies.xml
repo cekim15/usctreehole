@@ -6,7 +6,7 @@
     android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".CreatePost">
+    tools:context=".ViewReplies">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/main"
@@ -84,6 +84,35 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp" />
 
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/reply_input_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="8dp"
+            android:background="@color/white"
+            app:layout_constraintBottom_toBottomOf="parent">
+
+            <EditText
+                android:id="@+id/reply_edit_text"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="Replying to post..."
+                android:padding="8dp"
+                android:maxLines="5"
+                android:scrollHorizontally="false"
+                android:imeOptions="actionSend" />
+
+            <ImageButton
+                android:id="@+id/send_reply_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_send"
+                android:contentDescription="Send Reply"
+                app:tint="@android:color/holo_green_dark" />
         </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
