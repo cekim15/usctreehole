@@ -1,11 +1,13 @@
 package com.example.usctreehole;
 
 import com.google.firebase.Timestamp;
+import com.google.firebase.firestore.Exclude;
 
 import java.util.Date;
 
 public class Post {
     private String uid;
+    @Exclude
     private String pid;
     private String uname;
     private String title;
@@ -22,9 +24,11 @@ public class Post {
         this.timestamp = timestamp;
     }
 
+    @Exclude
     public void setPid(String pid) {
         this.pid = pid;
     }
+    @Exclude
     public String getPid() {
         return pid;
     }
@@ -49,6 +53,7 @@ public class Post {
         return timestamp;
     }
 
+    @Exclude
     public Date getTimestampAsDate() {
         return timestamp != null ? timestamp.toDate() : null;
     }

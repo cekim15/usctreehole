@@ -1,6 +1,5 @@
 package com.example.usctreehole;
 
-import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -61,10 +60,8 @@ public class MainActivity extends AppCompatActivity {
 
         rv = findViewById(R.id.recycler_view);
         rv.setLayoutManager(new LinearLayoutManager(this));
-        postAdapter = new PostAdapter(posts, this, viewing);
-        rv.setAdapter(postAdapter);
-
-        fetchPosts();
+        selectedCategory();
+        Log.d(TAG, viewing);
 
         FloatingActionButton createPost = findViewById(R.id.create_post);
         createPost.setOnClickListener(view -> {
@@ -73,8 +70,8 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    @SuppressLint("NotifyDataSetChanged")
     private void fetchPosts() {
+        Log.d(TAG, "fetching posts in " + viewing);
         db.collection(viewing)
                 .orderBy("timestamp", Query.Direction.DESCENDING)
                 .get()
@@ -89,12 +86,37 @@ public class MainActivity extends AppCompatActivity {
                             posts.add(post);
                             Log.d(TAG, "Adding post: " + post.getTitle());
                         }
-                        postAdapter.notifyDataSetChanged();
+                        postAdapter = new PostAdapter(posts, this, viewing);
+                        rv.setAdapter(postAdapter);
                     } else {
                         Log.w(TAG, "Error getting posts.", task.getException());
                         Toast.makeText(MainActivity.this, "Failed to load posts", Toast.LENGTH_SHORT).show();
                     }
                 });
+    }
+
+    private void selectedCategory() {
+        viewing = "lifePosts";
+        Intent coming_from = getIntent();
+        String just_posted_to = coming_from.getStringExtra("category");
+        if (just_posted_to != null) {
+            Log.d(TAG, just_posted_to);
+            if (just_posted_to.equals("Academic")) {
+                viewing = "academicPosts";
+                categoryTabs.selectTab(categoryTabs.getTabAt(1));
+            } else if (just_posted_to.equals("Event")) {
+                viewing = "eventPosts";
+                categoryTabs.selectTab(categoryTabs.getTabAt(2));
+            }
+        }
+
+        Log.d(TAG, "Called selected category");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        fetchPosts();
     }
 
     private void setUpToolbar() {
@@ -132,16 +154,16 @@ public class MainActivity extends AppCompatActivity {
             public void onTabSelected(TabLayout.Tab tab) {
                 switch (tab.getPosition()) {
                     case 0:
-                        viewing = "lifePosts"; // Update viewing variable
+                        viewing = "lifePosts";
                         break;
                     case 1:
-                        viewing = "academicPosts"; // Update viewing variable
+                        viewing = "academicPosts";
                         break;
                     case 2:
-                        viewing = "eventPosts"; // Update viewing variable
+                        viewing = "eventPosts";
                         break;
                 }
-                fetchPosts(); // Fetch posts based on the updated viewing variable
+                fetchPosts();
             }
 
             @Override

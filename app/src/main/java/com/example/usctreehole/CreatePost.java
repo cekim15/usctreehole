@@ -31,6 +31,7 @@ public class CreatePost extends AppCompatActivity {
     private FirebaseFirestore db;
     private static final String TAG = "CreatePost";
     private String collection;
+    private String category;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,7 +63,7 @@ public class CreatePost extends AppCompatActivity {
             String title = ((EditText) findViewById(R.id.enterPostTitle)).getText().toString();
             String content = ((EditText) findViewById(R.id.enterPostContent)).getText().toString();
             Spinner categorySelect = findViewById(R.id.categorySelect);
-            String category = categorySelect.getSelectedItem().toString();
+            category = categorySelect.getSelectedItem().toString();
 
             if (category.equals("Life")) {
                 collection = "lifePosts";
@@ -99,6 +100,7 @@ public class CreatePost extends AppCompatActivity {
                                     .addOnSuccessListener(documentReference -> {
                                         Toast.makeText(this, "Post created successfully", Toast.LENGTH_SHORT).show();
                                         Intent intent = new Intent(CreatePost.this, MainActivity.class);
+                                        intent.putExtra("category", category);
                                         startActivity(intent);
                                     })
                                     .addOnFailureListener(e -> {
