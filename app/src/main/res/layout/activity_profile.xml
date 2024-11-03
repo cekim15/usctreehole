@@ -61,10 +61,10 @@
 
                 <ImageView
                     android:id="@+id/profileImageView"
-                    android:layout_width="90dp"
-                    android:layout_height="90dp"
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
                     android:layout_marginStart="0dp"
-                    android:layout_marginBottom="8dp"
+                    android:layout_marginBottom="16dp"
                     android:scaleType="centerCrop"
                     android:src="@drawable/blank_profile_pic"
                     app:layout_constraintBottom_toBottomOf="parent"
@@ -74,12 +74,12 @@
                     android:id="@+id/nameTextView"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="4dp"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="8dp"
                     android:text="Name"
                     android:textColor="#333333"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
+                    android:textAllCaps="true"
+                    android:textSize="12sp"
                     app:layout_constraintStart_toEndOf="@id/profileImageView"
                     app:layout_constraintTop_toTopOf="@id/profileImageView" />
 
@@ -87,11 +87,11 @@
                     android:id="@+id/uscIdTextView"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="4dp"
+                    android:layout_marginStart="8dp"
                     android:layout_marginTop="4dp"
                     android:text="USC ID"
                     android:textColor="#555555"
-                    android:textSize="14sp"
+                    android:textSize="12sp"
                     app:layout_constraintStart_toEndOf="@id/profileImageView"
                     app:layout_constraintTop_toBottomOf="@id/nameTextView" />
 
@@ -99,11 +99,11 @@
                     android:id="@+id/roleTextView"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="4dp"
+                    android:layout_marginStart="8dp"
                     android:layout_marginTop="4dp"
                     android:text="Role"
                     android:textColor="#555555"
-                    android:textSize="14sp"
+                    android:textSize="12sp"
                     app:layout_constraintStart_toEndOf="@id/profileImageView"
                     app:layout_constraintTop_toBottomOf="@id/uscIdTextView" />
 

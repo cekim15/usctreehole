@@ -1,12 +1,11 @@
 package com.example.usctreehole;
 
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -18,8 +17,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.bumptech.glide.signature.ObjectKey;
+import com.bumptech.glide.RequestBuilder;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -129,11 +127,12 @@ public class Profile extends AppCompatActivity {
                         eventNotifications.setChecked(eventSubscribed);
 
                         if (profilePicUrl != null) {
-                            profilePicUrl += "?timestamp=" + System.currentTimeMillis();
                             try {
+                                RequestBuilder<Drawable> requestBuilder= Glide.with(this)
+                                        .asDrawable().sizeMultiplier(0.1f);
                                 Glide.with(this)
                                         .load(profilePicUrl)
-                                        .override(100, 100)
+                                        .override(80, 80)
                                         .placeholder(R.drawable.blank_profile_pic)
                                         .error(R.drawable.blank_profile_pic)
                                         .into(profileImageView);

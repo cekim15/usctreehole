@@ -15,8 +15,8 @@ import java.util.List;
 public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder> {
     private static final String TAG = "PostAdapter";
     private final List<Post> posts;
-    private Context context;
-    private String collection;
+    private final Context context;
+    private final String collection;
 
     public PostAdapter(List<Post> posts, Context context, String collection) {
         this.posts = posts;

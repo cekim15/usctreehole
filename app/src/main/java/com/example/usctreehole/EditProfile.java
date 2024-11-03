@@ -1,6 +1,7 @@
 package com.example.usctreehole;
 
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -20,6 +21,8 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.RequestBuilder;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
@@ -52,21 +55,8 @@ public class EditProfile extends AppCompatActivity {
                 if (result.getResultCode() == RESULT_OK) {
                     Intent data = result.getData();
                     if (data != null) {
-                        profileImageView.setImageURI(null);
                         profilepicuri = data.getData();
-
-                        try {
-                            Glide.with(this)
-                                    .load(profilepicuri)
-                                    .override(100, 100)
-                                    .placeholder(R.drawable.blank_profile_pic)
-                                    .fitCenter()
-                                    .skipMemoryCache(true)
-                                    .into(profileImageView);
-                        } catch (Error e) {
-                            Log.e(TAG, "Out of memory error while loading image", e);
-                            Toast.makeText(this, "Failed to load image. Please try again.", Toast.LENGTH_SHORT).show();
-                        }
+                        profileImageView.setImageURI(profilepicuri);
                     }
                 }
             });
@@ -230,6 +220,8 @@ public class EditProfile extends AppCompatActivity {
     private void loadImage(ImageView iv, String url) {
         if (url != null) {
             try {
+                RequestBuilder<Drawable> requestBuilder= Glide.with(this)
+                        .asDrawable().sizeMultiplier(0.1f);
                 Glide.with(this)
                         .load(old_profileUrl)
                         .override(100, 100)
