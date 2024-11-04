@@ -9,16 +9,14 @@ public class Post {
     private String uid;
     @Exclude
     private String pid;
-    private String uname;
     private String title;
     private String content;
     private Timestamp timestamp;
 
     public Post() {}
 
-    public Post(String uid, String uname, String title, String content, Timestamp timestamp) {
+    public Post(String uid, String title, String content, Timestamp timestamp) {
         this.uid = uid;
-        this.uname = uname;
         this.title = title;
         this.content = content;
         this.timestamp = timestamp;
@@ -35,10 +33,6 @@ public class Post {
 
     public String getUid() {
         return uid;
-    }
-
-    public String getUname() {
-        return uname;
     }
 
     public String getTitle() {

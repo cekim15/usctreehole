@@ -128,8 +128,6 @@ public class Profile extends AppCompatActivity {
 
                         if (profilePicUrl != null) {
                             try {
-                                RequestBuilder<Drawable> requestBuilder= Glide.with(this)
-                                        .asDrawable().sizeMultiplier(0.1f);
                                 Glide.with(this)
                                         .load(profilePicUrl)
                                         .override(80, 80)

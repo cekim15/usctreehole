@@ -2,6 +2,7 @@ package com.example.usctreehole;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
@@ -11,6 +12,12 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.RequestBuilder;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.List;
 
@@ -24,12 +31,14 @@ public class ReplyAdapter extends RecyclerView.Adapter<ReplyAdapter.ReplyViewHol
     private final Context context;
     private final String pid;
     private final ReplyingToReplyListener rtrListener;
+    private FirebaseFirestore db;
 
     public ReplyAdapter(List<Reply> replies, Context context, String pid, ReplyingToReplyListener listener) {
         this.replies = replies;
         this.context = context;
         this.pid = pid;
         this.rtrListener = listener;
+        this.db = FirebaseFirestore.getInstance();
     }
 
     @NonNull
@@ -52,10 +61,42 @@ public class ReplyAdapter extends RecyclerView.Adapter<ReplyAdapter.ReplyViewHol
 
         ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams) holder.itemView.getLayoutParams();
         if (reply.isNested()) {
+            Log.d(TAG, "loading nested reply with content " + reply.getContent());
             int margin_dp = (int) TypedValue.applyDimension(
                     TypedValue.COMPLEX_UNIT_DIP, 16, context.getResources().getDisplayMetrics());
             layoutParams.setMarginStart(margin_dp);
             holder.itemView.setLayoutParams(layoutParams);
+        }
+
+        if (!reply.isAnonymous()) {
+            db.collection("users")
+                    .document(reply.getUid())
+                    .get()
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            DocumentSnapshot document = task.getResult();
+                            if (document != null && document.exists()) {
+                                String name = document.getString("name");
+                                holder.author.setText(name);
+                                reply.setName(name);
+
+                                String pfpUrl = document.getString("profilePicUrl");
+                                if (pfpUrl != null) {
+                                    Glide.with(context)
+                                            .load(pfpUrl)
+                                            .placeholder(R.drawable.blank_profile_pic)
+                                            .override(40, 40)
+                                            .diskCacheStrategy(DiskCacheStrategy.DATA)
+                                            .error(R.drawable.blank_profile_pic)
+                                            .into(holder.pfp);
+                                    Log.d("ReplyAdapter", "loaded pfp");
+                                } else {
+                                    holder.pfp.setImageResource(R.drawable.blank_profile_pic);
+                                    Log.d("ReplyAdapter", "couldn't load pfp");
+                                }
+                            }
+                        }
+                    });
         }
     }
 

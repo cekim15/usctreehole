@@ -21,6 +21,7 @@ import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -42,6 +43,7 @@ public class ViewReplies extends AppCompatActivity implements ReplyAdapter.Reply
     private boolean rtr;
     private Reply parentReply;
     private EditText replyEditText;
+    private boolean anonymous;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -99,18 +101,19 @@ public class ViewReplies extends AppCompatActivity implements ReplyAdapter.Reply
         db.collection(collection)
                 .document(postID)
                 .collection("replies")
-                .orderBy("timestamp", Query.Direction.DESCENDING)
+                .orderBy("timestamp", Query.Direction.ASCENDING) // i think it's more intuitive for replies to be oldest to newest
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         replies.clear();
+                        List<Reply> temp_replies = new ArrayList<>();
                         for (QueryDocumentSnapshot document : task.getResult()) {
                             Reply reply = document.toObject(Reply.class);
                             String rid = document.getId();
                             reply.setRid(rid);
-                            replies.add(reply);
-                            Log.d(TAG, "Loading reply: " + reply.getRid());
-                            fetchNestedReplies(reply);
+                            temp_replies.add(reply);
+                            Log.d(TAG, "Loading reply: " + reply.getRid() + " for which nested is " + reply.isNested());
+                            fetchNestedReplies(reply, temp_replies);
                         }
                         replyAdapter = new ReplyAdapter(replies, this, postID, this);
                         rrv.setAdapter(replyAdapter);
@@ -121,17 +124,22 @@ public class ViewReplies extends AppCompatActivity implements ReplyAdapter.Reply
                 });
     }
 
-    private void fetchNestedReplies(Reply parentReply) {
+    private void fetchNestedReplies(Reply parentReply, List<Reply> temp_replies) {
         db.collection(collection).document(postID)
-                .collection("replies").document(parentReply.getRid()).collection("replies")
-                .orderBy("timestamp", Query.Direction.DESCENDING)
+                .collection("replies")
+                .document(parentReply.getRid())
+                .collection("replies")
+                .orderBy("timestamp", Query.Direction.ASCENDING)
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         for (QueryDocumentSnapshot document : task.getResult()) {
                             Reply nestedReply = document.toObject(Reply.class);
-                            replies.add(nestedReply);
+                            temp_replies.add(nestedReply);
                         }
+                        replies.clear();
+                        replies.addAll(temp_replies);
+                        replyAdapter.notifyDataSetChanged();
                     } else {
                         Log.w(TAG, "Error getting nested replies.", task.getException());
                     }
@@ -141,7 +149,13 @@ public class ViewReplies extends AppCompatActivity implements ReplyAdapter.Reply
     @Override
     public void onReplyToReply(Reply reply) {
         Log.d(TAG, "Replying to reply with ID: " + reply.getRid());
-        String newHint = "Replying to " + reply.getName() + ": ";
+        String newHint = "Replying to ";
+        if (reply.isAnonymous()) {
+            newHint += reply.getAnonymousName() + "...";
+        }
+        else {
+            newHint += reply.getName() + "...";
+        }
         replyEditText.setHint(newHint);
         replyEditText.requestFocus();
         rtr = true;
@@ -161,13 +175,25 @@ public class ViewReplies extends AppCompatActivity implements ReplyAdapter.Reply
                     .addOnSuccessListener(documentSnapshot -> {
                         if (documentSnapshot.exists()) {
                             String content = ((EditText) findViewById(R.id.reply_edit_text)).getText().toString();
+                            if (rtr) {
+                                if (parentReply.isAnonymous()) {
+                                    content = "reply to " + parentReply.getAnonymousName() + ": " + content;
+                                }
+                                else {
+                                    content = "reply to " + parentReply.getName() + ": " + content;
+                                }
+                            }
                             Timestamp timestamp = Timestamp.now();
-                            Reply reply = new Reply(uid, content, timestamp, false, "Anonymous", rtr);
+                            Reply reply = new Reply(uid, content, timestamp, anonymous, "Anonymous", rtr);
 
                             if (!rtr) {
-                                db.collection(collection).document(postID).collection("replies")
+                                db.collection(collection)
+                                        .document(postID)
+                                        .collection("replies")
                                         .add(reply)
                                         .addOnSuccessListener(documentReference -> {
+                                            reply.setRid(documentReference.getId());
+                                            documentReference.update("rid", documentReference.getId());
                                             Toast.makeText(this, "Reply posted successfully", Toast.LENGTH_SHORT).show();
                                             ((EditText) findViewById(R.id.reply_edit_text)).setText("");
                                         })
@@ -178,10 +204,16 @@ public class ViewReplies extends AppCompatActivity implements ReplyAdapter.Reply
                             }
                             else {
                                 String parentRid = parentReply.getRid();
-                                db.collection(collection).document(postID).collection("replies")
-                                        .document(parentRid).collection("replies")
+                                Log.d(TAG, "Parent reply id: " + parentRid);
+                                db.collection(collection)
+                                        .document(postID)
+                                        .collection("replies")
+                                        .document(parentRid)
+                                        .collection("replies")
                                         .add(reply)
                                         .addOnSuccessListener(documentReference -> {
+                                            reply.setRid(documentReference.getId());
+                                            documentReference.update("rid", documentReference.getId());
                                             Toast.makeText(this, "Reply posted successfully", Toast.LENGTH_SHORT).show();
                                             ((EditText) findViewById(R.id.reply_edit_text)).setText("");
                                         })
@@ -204,7 +236,18 @@ public class ViewReplies extends AppCompatActivity implements ReplyAdapter.Reply
                     if (documentSnapshot.exists()) {
                         Post post = documentSnapshot.toObject(Post.class);
                         title.setText(post.getTitle());
-                        author.setText(post.getUname());
+                        db.collection("users")
+                                .document(post.getUid())
+                                .get()
+                                .addOnCompleteListener(task -> {
+                                    if (task.isSuccessful()) {
+                                        DocumentSnapshot document = task.getResult();
+                                        if (document != null && document.exists()) {
+                                            String name = document.getString("name");
+                                            author.setText(name);
+                                        }
+                                    }
+                                });
                         content.setText(post.getContent());
                         timestamp.setText(String.valueOf(post.getTimestampAsDate()));
                     } else {

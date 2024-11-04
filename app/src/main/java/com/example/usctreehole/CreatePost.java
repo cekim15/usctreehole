@@ -98,30 +98,21 @@ public class CreatePost extends AppCompatActivity {
         }
         else {
             String uid = currentUser.getUid();
+            Timestamp timestamp = Timestamp.now();
+            Post post = new Post(uid, title, content, timestamp);
 
-            db.collection("users").document(uid).get()
-                    .addOnSuccessListener(documentSnapshot -> {
-                        if (documentSnapshot.exists()) {
-                            String uname = documentSnapshot.getString("name");
-
-                            Timestamp timestamp = Timestamp.now();
-                            Post post = new Post(uid, uname, title, content, timestamp);
-
-                            db.collection(collection)
-                                    .add(post)
-                                    .addOnSuccessListener(documentReference -> {
-                                        Toast.makeText(this, "Post created successfully", Toast.LENGTH_SHORT).show();
-                                        Intent intent = new Intent(CreatePost.this, MainActivity.class);
-                                        intent.putExtra("category", category);
-                                        startActivity(intent);
-                                    })
-                                    .addOnFailureListener(e -> {
-                                        Log.d(TAG, "Could not add post");
-                                        Toast.makeText(this, "Error adding post: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                                    });
-                        }
+            db.collection(collection)
+                    .add(post)
+                    .addOnSuccessListener(documentReference -> {
+                        Toast.makeText(this, "Post created successfully", Toast.LENGTH_SHORT).show();
+                        Intent intent = new Intent(CreatePost.this, MainActivity.class);
+                        intent.putExtra("category", category);
+                        startActivity(intent);
                     })
-                    .addOnFailureListener(e -> Log.e(TAG, "Error getting user name: ", e));
+                    .addOnFailureListener(e -> {
+                        Log.d(TAG, "Could not add post");
+                        Toast.makeText(this, "Error adding post: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
         }
     }
 

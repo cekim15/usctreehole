@@ -10,6 +10,9 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+
 import java.util.List;
 
 public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder> {
@@ -17,11 +20,13 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
     private final List<Post> posts;
     private final Context context;
     private final String collection;
+    private FirebaseFirestore db;
 
     public PostAdapter(List<Post> posts, Context context, String collection) {
         this.posts = posts;
         this.context = context;
         this.collection = collection;
+        this.db = FirebaseFirestore.getInstance();
     }
 
     @NonNull
@@ -35,7 +40,20 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.PostViewHolder
     public void onBindViewHolder(@NonNull PostViewHolder holder, int position) {
         Post post = posts.get(position);
         holder.title.setText(post.getTitle());
-        holder.author.setText(post.getUname());
+
+        db.collection("users")
+                .document(post.getUid())
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        DocumentSnapshot document = task.getResult();
+                        if (document != null && document.exists()) {
+                            String name = document.getString("name");
+                            holder.author.setText(name);
+                        }
+                    }
+                });
+
         holder.content.setText(post.getContent());
         holder.timestamp.setText(String.valueOf(post.getTimestampAsDate()));
 

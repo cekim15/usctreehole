@@ -1,5 +1,7 @@
 package com.example.usctreehole;
 
+import android.util.Log;
+
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.Exclude;
 
@@ -13,6 +15,8 @@ public class Reply {
     private Timestamp timestamp;
     private boolean anonymous;
     private String anonymous_name;
+    @Exclude
+    private String name;
     private boolean nested_reply;
 
     public Reply() {}
@@ -24,16 +28,14 @@ public class Reply {
         this.anonymous = anonymous;
         this.anonymous_name = anonymous_name;
         this.nested_reply = nested_reply;
+        Log.d("Reply", String.valueOf(this.nested_reply));
     }
 
     public String getUid() { return this.uid; }
 
-    @Exclude
     public void setRid(String rid) {
         this.rid = rid;
     }
-
-    @Exclude
     public String getRid() {return this.rid; }
 
     public String getContent() { return this.content; }
@@ -43,18 +45,11 @@ public class Reply {
     public String getAnonymousName() { return this.anonymous_name; }
 
     @Exclude
-    public String getName() {
-        // access name in firestore
-        return "";
-    }
-
+    public void setName(String name) {this.name = name; }
     @Exclude
-    public String getPfpUrl() {
-        // access pfp in firestore
-        return "";
-    }
+    public String getName() {return this.name; }
 
-    public void setNested(boolean nested) { this.nested_reply = true; }
+    public void setNested(boolean nested) { this.nested_reply = nested; }
     public boolean isNested() { return this.nested_reply; }
 
     public Timestamp getTimestamp() {
