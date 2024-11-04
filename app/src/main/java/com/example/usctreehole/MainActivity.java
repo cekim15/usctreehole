@@ -53,7 +53,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         setUpToolbar();
+        getViewing();
         setUpTabs();
+        Log.d(TAG, "On create viewing is: " + viewing);
 
         ImageView notifications = findViewById(R.id.notification_bell);
         notifications.setOnClickListener(v -> openNotifications());
@@ -62,8 +64,6 @@ public class MainActivity extends AppCompatActivity {
         rv.setLayoutManager(new LinearLayoutManager(this));
         postAdapter = new PostAdapter(new ArrayList<>(), this, viewing);
         rv.setAdapter(postAdapter);
-        selectedCategory();
-        Log.d(TAG, viewing);
 
         FloatingActionButton createPost = findViewById(R.id.create_post);
         createPost.setOnClickListener(view -> {
@@ -74,11 +74,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void fetchPosts() {
-        Log.d(TAG, "fetching posts in " + viewing);
+        if (viewing != null) {
+            Log.d(TAG, "fetching posts in " + viewing);
+        }
+        else {
+            Log.d(TAG, "can't fetch, viewing null");
+        }
         db.collection(viewing)
                 .orderBy("timestamp", Query.Direction.DESCENDING)
                 .get()
                 .addOnCompleteListener(task -> {
+                    Log.d(TAG, "finished fetching");
                     if (task.isSuccessful()) {
                         posts.clear();
                         for (QueryDocumentSnapshot document : task.getResult()) {
@@ -87,7 +93,7 @@ public class MainActivity extends AppCompatActivity {
                             post.setPid(pid);
                             Log.d(TAG, pid);
                             posts.add(post);
-                            Log.d(TAG, "Adding post: " + post.getTitle());
+                            Log.d(TAG, "Adding " + viewing + " post: " + post.getTitle());
                         }
                         postAdapter = new PostAdapter(posts, this, viewing);
                         rv.setAdapter(postAdapter);
@@ -98,27 +104,30 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
-    private void selectedCategory() {
+    private void getViewing() {
+        Log.d(TAG, "Called selected category");
         viewing = "lifePosts";
         Intent coming_from = getIntent();
+        String viewed_post_in = coming_from.getStringExtra("collection");
+        if (viewed_post_in != null) {
+            viewing = viewed_post_in;
+        }
         String just_posted_to = coming_from.getStringExtra("category");
         if (just_posted_to != null) {
             Log.d(TAG, just_posted_to);
             if (just_posted_to.equals("Academic")) {
                 viewing = "academicPosts";
-                categoryTabs.selectTab(categoryTabs.getTabAt(1));
             } else if (just_posted_to.equals("Event")) {
                 viewing = "eventPosts";
-                categoryTabs.selectTab(categoryTabs.getTabAt(2));
             }
         }
-
-        Log.d(TAG, "Called selected category");
     }
 
     @Override
     protected void onResume() {
+        Log.d(TAG, "calling on resume");
         super.onResume();
+        Log.d(TAG, "calling fetch posts from on resume");
         fetchPosts();
     }
 
@@ -152,6 +161,11 @@ public class MainActivity extends AppCompatActivity {
 
     private void setUpTabs() {
         categoryTabs = findViewById(R.id.change_category);
+
+        categoryTabs.addTab(categoryTabs.newTab().setText("Life"));
+        categoryTabs.addTab(categoryTabs.newTab().setText("Academic"));
+        categoryTabs.addTab(categoryTabs.newTab().setText("Event"));
+
         categoryTabs.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
@@ -166,6 +180,7 @@ public class MainActivity extends AppCompatActivity {
                         viewing = "eventPosts";
                         break;
                 }
+                Log.d(TAG, "calling fetch posts from setuptabs");
                 fetchPosts();
             }
 
@@ -176,9 +191,13 @@ public class MainActivity extends AppCompatActivity {
             public void onTabReselected(TabLayout.Tab tab) {}
         });
 
-        categoryTabs.addTab(categoryTabs.newTab().setText("Life"));
-        categoryTabs.addTab(categoryTabs.newTab().setText("Academic"));
-        categoryTabs.addTab(categoryTabs.newTab().setText("Event"));
+        if (viewing.equals("lifePosts")) {
+            categoryTabs.selectTab(categoryTabs.getTabAt(0));
+        } else if (viewing.equals("academicPosts")) {
+            categoryTabs.selectTab(categoryTabs.getTabAt(1));
+        } else if (viewing.equals("eventPosts")) {
+            categoryTabs.selectTab(categoryTabs.getTabAt(2));
+        }
     }
 
     private void openNotifications() {

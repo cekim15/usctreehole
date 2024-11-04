@@ -41,6 +41,7 @@ public class ViewReplies extends AppCompatActivity implements ReplyAdapter.Reply
     private List<Reply> replies = new ArrayList<>();
     private boolean rtr;
     private Reply parentReply;
+    private EditText replyEditText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,6 +70,23 @@ public class ViewReplies extends AppCompatActivity implements ReplyAdapter.Reply
         fetchReplies();
 
         rtr = false;
+        replyEditText = findViewById(R.id.reply_edit_text);
+
+        ImageView post_reply = findViewById(R.id.reply_to_post);
+        post_reply.setOnClickListener(v -> {
+            String newHint = "Replying to post...";
+            replyEditText.setHint(newHint);
+            replyEditText.requestFocus();
+            rtr = false;
+        });
+
+        TextView back = findViewById(R.id.back_to_posts);
+        back.setOnClickListener(v -> {
+            Intent intent = new Intent(ViewReplies.this, MainActivity.class);
+            intent.putExtra("collection", collection);
+            Log.d(TAG, collection);
+            startActivity(intent);
+        });
 
         ImageButton send_reply = findViewById(R.id.send_reply_button);
         send_reply.setOnClickListener(view -> {
@@ -123,7 +141,6 @@ public class ViewReplies extends AppCompatActivity implements ReplyAdapter.Reply
     @Override
     public void onReplyToReply(Reply reply) {
         Log.d(TAG, "Replying to reply with ID: " + reply.getRid());
-        EditText replyEditText = findViewById(R.id.reply_edit_text);
         String newHint = "Replying to " + reply.getName() + ": ";
         replyEditText.setHint(newHint);
         replyEditText.requestFocus();

@@ -3,7 +3,6 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:layout_marginStart = "4dp"
     android:padding="8dp">
 
     <ImageView
@@ -61,6 +60,7 @@
         android:layout_height="24dp"
         android:layout_gravity="center"
         android:contentDescription="Reply to this reply"
+        android:background="?attr/selectableItemBackground"
         android:src="@drawable/ic_reply_arrow" />
 
 </LinearLayout>
