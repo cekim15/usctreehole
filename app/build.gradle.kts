@@ -51,5 +51,5 @@ dependencies {
     implementation(libs.appcompat)
     implementation(libs.recyclerview)
     implementation(libs.material)
-
+    implementation("androidx.core:core-ktx:1.12.0")
 }

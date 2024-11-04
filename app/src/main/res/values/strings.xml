@@ -2,6 +2,8 @@
     <string name="app_name">USC Tree Hole</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name = "channel_name">Post Notifications</string>
+    <string name="channel_description">Notifications for new posts</string>
     <string-array name="roles_array">
         <item>Undergraduate Student</item>
         <item>Graduate Student</item>

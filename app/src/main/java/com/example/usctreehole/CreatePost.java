@@ -1,6 +1,11 @@
 package com.example.usctreehole;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
@@ -12,6 +17,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
@@ -21,6 +27,10 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
+import androidx.activity.result.ActivityResultLauncher;
+import android.Manifest;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,6 +43,9 @@ public class CreatePost extends AppCompatActivity {
     private String collection;
     private Spinner categorySelect;
     private String category;
+    private static final String CHANNEL_ID = "post_notification_channel";
+    private static final int NOTIFICATION_ID = 1;
+    private static final int NOTIFICATION_PERMISSION_REQUEST_CODE = 1001;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -151,4 +164,66 @@ public class CreatePost extends AppCompatActivity {
         // open notifications screen?
         Toast.makeText(this, "Notifications Clicked", Toast.LENGTH_SHORT).show();
     }
+
+
+
+    //Post Notifications
+    private void createNotificationChannel() {
+        // Create the NotificationChannel, but only on API 26+ because
+        // the NotificationChannel class is not in the Support Library.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name = getString(R.string.channel_name);
+            String description = getString(R.string.channel_description);
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
+            channel.setDescription(description);
+            // Register the channel with the system; you can't change the importance
+            // or other notification behaviors after this.
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+        }
+    }
+
+
+    public void showPostNotification(String textTitle, String textContent){
+        String CHANNEL_ID = "post_notification_channel";
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE);
+
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_notification_bell)
+                .setContentTitle("New Post Created")
+                .setContentText("A new post was added to your feed")
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT);
+
+
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.POST_NOTIFICATIONS
+       ) != PackageManager.PERMISSION_GRANTED
+   ) {
+                // TODO: Consider calling
+                // ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                // public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                        int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+            ActivityCompat.requestPermissions(
+                    this,
+                    new String[]{Manifest.permission.POST_NOTIFICATIONS},
+                    NOTIFICATION_PERMISSION_REQUEST_CODE
+            );
+
+                return;
+            }
+            // notificationId is a unique int for each notification that you must define.
+            notificationManager.notify(NOTIFICATION_ID, builder.build());
+
+
+    }
+
 }
