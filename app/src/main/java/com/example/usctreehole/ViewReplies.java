@@ -11,6 +11,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -44,6 +45,10 @@ public class ViewReplies extends AppCompatActivity implements ReplyAdapter.Reply
     private Reply parentReply;
     private EditText replyEditText;
     private boolean anonymous;
+    private SwitchCompat anonymous_toggle;
+    private String uid;
+    private String anonymous_name;
+    private AnonymousNameGenerator name_generator;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,6 +72,22 @@ public class ViewReplies extends AppCompatActivity implements ReplyAdapter.Reply
 
         Log.d(TAG, collection);
         displayPost();
+
+        anonymous_toggle = findViewById(R.id.anonymous_reply_toggle);
+        anonymous_toggle.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            anonymous = isChecked;
+        });
+        name_generator = new AnonymousNameGenerator();
+
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser == null) {
+            Intent loginIntent = new Intent(ViewReplies.this, Login.class);
+            startActivity(loginIntent);
+            finish();
+        }
+        else {
+            uid = currentUser.getUid();
+        }
 
         rrv = findViewById(R.id.replies_recycler_view);
         rrv.setLayoutManager(new LinearLayoutManager(this));
@@ -101,6 +122,7 @@ public class ViewReplies extends AppCompatActivity implements ReplyAdapter.Reply
 
     private void fetchReplies() {
         Log.d(TAG, "fetching replies in " + collection + " for post " + postID);
+        repliedBefore();
         db.collection(collection)
                 .document(postID)
                 .collection("replies")
@@ -113,6 +135,11 @@ public class ViewReplies extends AppCompatActivity implements ReplyAdapter.Reply
                             Reply reply = document.toObject(Reply.class);
                             String rid = document.getId();
                             reply.setRid(rid);
+                            if (reply.isAnonymous()) {
+                                String used_anon_name = reply.getAnonymous_name();
+                                name_generator.removeUsedName(used_anon_name);
+                                Log.d(TAG, "Removing used anonymous name " + used_anon_name + " from generator");
+                            }
                             replies.add(reply);
                             Log.d(TAG, "Loading reply: " + reply.getRid() + " for which nested is " + reply.isNested());
                         }
@@ -141,44 +168,38 @@ public class ViewReplies extends AppCompatActivity implements ReplyAdapter.Reply
     }
 
     private void createReply() {
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser == null) {
-            Intent loginIntent = new Intent(ViewReplies.this, Login.class);
-            startActivity(loginIntent);
-            finish();
-        }
-        else {
-            String uid = currentUser.getUid();
-            db.collection(collection).document(postID).get()
-                    .addOnSuccessListener(documentSnapshot -> {
-                        if (documentSnapshot.exists()) {
-                            String content = ((EditText) findViewById(R.id.reply_edit_text)).getText().toString();
-                            Timestamp timestamp = Timestamp.now();
-                            String parent_reply_id = "";
-                            if (rtr) {
-                                parent_reply_id = parentReply.getRid();
-                            }
-                            Reply reply = new Reply(uid, content, timestamp, anonymous, "Anonymous", rtr, parent_reply_id);
-
-                            db.collection(collection)
-                                    .document(postID)
-                                    .collection("replies")
-                                    .add(reply)
-                                    .addOnSuccessListener(documentReference -> {
-                                        reply.setRid(documentReference.getId());
-                                        documentReference.update("rid", documentReference.getId());
-                                        Toast.makeText(this, "Reply posted successfully", Toast.LENGTH_SHORT).show();
-                                        ((EditText) findViewById(R.id.reply_edit_text)).setText("");
-                                        fetchReplies();
-                                    })
-                                    .addOnFailureListener(e -> {
-                                        Log.d(TAG, "Could not add reply");
-                                        Toast.makeText(this, "Error adding reply: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                                    });
+        db.collection(collection).document(postID).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        String content = ((EditText) findViewById(R.id.reply_edit_text)).getText().toString();
+                        Timestamp timestamp = Timestamp.now();
+                        String parent_reply_id = "";
+                        if (rtr) {
+                            parent_reply_id = parentReply.getRid();
                         }
-                    })
-                    .addOnFailureListener(e -> Log.e(TAG, "Error: ", e));
-        }
+                        if (anonymous && anonymous_name.isEmpty()) {
+                            anonymous_name = name_generator.generateRandomAnonymousName();
+                        }
+                        Reply reply = new Reply(uid, content, timestamp, anonymous, anonymous_name, rtr, parent_reply_id);
+
+                        db.collection(collection)
+                                .document(postID)
+                                .collection("replies")
+                                .add(reply)
+                                .addOnSuccessListener(documentReference -> {
+                                    reply.setRid(documentReference.getId());
+                                    documentReference.update("rid", documentReference.getId());
+                                    Toast.makeText(this, "Reply posted successfully", Toast.LENGTH_SHORT).show();
+                                    ((EditText) findViewById(R.id.reply_edit_text)).setText("");
+                                    fetchReplies();
+                                })
+                                .addOnFailureListener(e -> {
+                                    Log.d(TAG, "Could not add reply");
+                                    Toast.makeText(this, "Error adding reply: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                });
+                    }
+                })
+                .addOnFailureListener(e -> Log.e(TAG, "Error: ", e));
     }
 
     private void displayPost() {
@@ -210,6 +231,41 @@ public class ViewReplies extends AppCompatActivity implements ReplyAdapter.Reply
                     Log.e(TAG, "Error fetching post details", e);
                     Toast.makeText(this, "Failed to load post details", Toast.LENGTH_SHORT).show();
                 });
+    }
+
+    private void repliedBefore() {
+        db.collection(collection)
+                .document(postID)
+                .collection("replies")
+                .whereEqualTo("uid", uid)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        if (!task.getResult().isEmpty()) {
+                            DocumentSnapshot document = task.getResult().getDocuments().get(0);
+                            Reply prev_reply = document.toObject(Reply.class);
+                            handleRepliedBefore(prev_reply.isAnonymous());
+                            anonymous_name = prev_reply.getAnonymous_name();
+                        }
+                        else {
+                            anonymous_name = "";
+                        }
+                    }
+                });
+    }
+
+    private void handleRepliedBefore(boolean anonymous_previously) {
+        TextView anonymous_reply_label = findViewById(R.id.anonymous_reply_label);
+        if (anonymous_previously) {
+            anonymous_toggle.setChecked(true);
+            String established_anon = "You have chosen to remain anonymous under this post.";
+            anonymous_reply_label.setText(established_anon);
+        } else {
+            anonymous_toggle.setChecked(false);
+            String established_not_anon = "You have chosen not to remain anonymous under this post.";
+            anonymous_reply_label.setText(established_not_anon);
+        }
+        anonymous_toggle.setEnabled(false);
     }
 
     private void setUpToolbar() {

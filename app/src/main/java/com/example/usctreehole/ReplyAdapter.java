@@ -133,6 +133,8 @@ public class ReplyAdapter extends RecyclerView.Adapter<ReplyAdapter.ReplyViewHol
                             }
                         }
                     });
+        } else {
+            holder.author.setText(reply.getAnonymous_name());
         }
     }
 
