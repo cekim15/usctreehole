@@ -125,6 +125,7 @@ public class Signup extends AppCompatActivity {
                                     userInfo.put("uscID", uscID);
                                     userInfo.put("role", role);
                                     userInfo.put("profilePicUrl", uri.toString());
+                                    userInfo.put("profilePicVersion", System.currentTimeMillis());
 
                                     // subscription settings
                                     userInfo.put("lifeSubscription", false);
