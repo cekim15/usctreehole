@@ -11,18 +11,83 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="USC Tree Hole"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:layout_margin="16dp"
+            android:layout_alignParentTop="true"/>
+
+        <ScrollView
+            android:id="@+id/scrollable_posts"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_above="@id/bottom_navigation_bar"
+            android:layout_below="@id/title"
+            android:layout_margin="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@android:color/white"
+                android:padding="8dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="USER POST HERE"
+                    android:textSize="16sp" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Date and Time"
+                    android:textSize="12sp"
+                    android:textColor="@android:color/darker_gray"/>
+            </LinearLayout>
+
+        </ScrollView>
+
         <FrameLayout
             android:id="@id/container"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_above="@+id/bottom_navigation_bar"/>
+            android:layout_above="@+id/bottom_navigation_bar"
+            android:layout_below="@id/title"/>
 
         <LinearLayout
             android:id="@+id/bottom_navigation_bar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal" />
+            android:orientation="horizontal"
+            android:layout_alignParentBottom="true"
+            android:background="@android:color/darker_gray">
+            <Button
+                android:id="@+id/academic"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Academic"/>
+            <Button
+                android:id="@+id/life"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Life"/>
 
+            <Button
+                android:id="@+id/event"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Event"/>
+
+        </LinearLayout>
     </RelativeLayout>
 
     
