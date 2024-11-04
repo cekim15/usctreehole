@@ -214,23 +214,11 @@ public class EditProfile extends AppCompatActivity {
         }
 
         profileImageView = findViewById(R.id.imageViewProfilePic);
-        loadImage(profileImageView, old_profileUrl);
-    }
-
-    private void loadImage(ImageView iv, String url) {
-        if (url != null) {
-            try {
-                RequestBuilder<Drawable> requestBuilder= Glide.with(this)
-                        .asDrawable().sizeMultiplier(0.1f);
-                Glide.with(this)
-                        .load(old_profileUrl)
-                        .override(100, 100)
-                        .placeholder(R.drawable.blank_profile_pic)
-                        .into(profileImageView);
-            } catch (Error e) {
-                Log.e(TAG, "Out of memory error while loading image", e);
-                Toast.makeText(this, "Failed to load image. Please try again.", Toast.LENGTH_SHORT).show();
-            }
+        if (old_profileUrl != null) {
+            profileImageView.setImageURI(Uri.parse(old_profileUrl));
+        }
+        else {
+            profileImageView.setImageResource(R.drawable.blank_profile_pic);
         }
     }
 
