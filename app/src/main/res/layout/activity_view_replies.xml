@@ -38,6 +38,7 @@
         </androidx.appcompat.widget.Toolbar>
 
         <LinearLayout
+            android:id="@+id/post_display"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
@@ -112,15 +113,21 @@
                 android:text="Back to home"
                 android:textColor="#3F51B5" />
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/replies_recycler_view"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp" />
-
         </LinearLayout>
 
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/replies_recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginBottom="16dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:scrollbars="vertical"
+            app:layout_constraintTop_toBottomOf="@id/post_display"
+            app:layout_constraintBottom_toTopOf="@id/write_reply_display" />
+
         <LinearLayout
+            android:id="@+id/write_reply_display"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
