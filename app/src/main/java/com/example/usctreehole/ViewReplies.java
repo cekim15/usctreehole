@@ -63,15 +63,17 @@ public class ViewReplies extends AppCompatActivity implements ReplyAdapter.Reply
         author = findViewById(R.id.post_author);
         content = findViewById(R.id.post_content);
         timestamp = findViewById(R.id.post_timestamp);
+        rtr = false;
 
         Log.d(TAG, collection);
         displayPost();
 
         rrv = findViewById(R.id.replies_recycler_view);
         rrv.setLayoutManager(new LinearLayoutManager(this));
+        replyAdapter = new ReplyAdapter(replies, this, collection, postID, this);
+        rrv.setAdapter(replyAdapter);
         fetchReplies();
 
-        rtr = false;
         replyEditText = findViewById(R.id.reply_edit_text);
 
         ImageView post_reply = findViewById(R.id.reply_to_post);
@@ -88,6 +90,7 @@ public class ViewReplies extends AppCompatActivity implements ReplyAdapter.Reply
             intent.putExtra("collection", collection);
             Log.d(TAG, collection);
             startActivity(intent);
+            finish();
         });
 
         ImageButton send_reply = findViewById(R.id.send_reply_button);
@@ -106,42 +109,17 @@ public class ViewReplies extends AppCompatActivity implements ReplyAdapter.Reply
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         replies.clear();
-                        List<Reply> temp_replies = new ArrayList<>();
                         for (QueryDocumentSnapshot document : task.getResult()) {
                             Reply reply = document.toObject(Reply.class);
                             String rid = document.getId();
                             reply.setRid(rid);
-                            temp_replies.add(reply);
+                            replies.add(reply);
                             Log.d(TAG, "Loading reply: " + reply.getRid() + " for which nested is " + reply.isNested());
-                            fetchNestedReplies(reply, temp_replies);
                         }
-                        replyAdapter = new ReplyAdapter(replies, this, postID, this);
-                        rrv.setAdapter(replyAdapter);
+                        replyAdapter.notifyDataSetChanged();
                     } else {
                         Log.w(TAG, "Error getting replies.", task.getException());
                         Toast.makeText(ViewReplies.this, "Failed to load replies", Toast.LENGTH_SHORT).show();
-                    }
-                });
-    }
-
-    private void fetchNestedReplies(Reply parentReply, List<Reply> temp_replies) {
-        db.collection(collection).document(postID)
-                .collection("replies")
-                .document(parentReply.getRid())
-                .collection("replies")
-                .orderBy("timestamp", Query.Direction.ASCENDING)
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        for (QueryDocumentSnapshot document : task.getResult()) {
-                            Reply nestedReply = document.toObject(Reply.class);
-                            temp_replies.add(nestedReply);
-                        }
-                        replies.clear();
-                        replies.addAll(temp_replies);
-                        replyAdapter.notifyDataSetChanged();
-                    } else {
-                        Log.w(TAG, "Error getting nested replies.", task.getException());
                     }
                 });
     }
@@ -151,7 +129,7 @@ public class ViewReplies extends AppCompatActivity implements ReplyAdapter.Reply
         Log.d(TAG, "Replying to reply with ID: " + reply.getRid());
         String newHint = "Replying to ";
         if (reply.isAnonymous()) {
-            newHint += reply.getAnonymousName() + "...";
+            newHint += reply.getAnonymous_name() + "...";
         }
         else {
             newHint += reply.getName() + "...";
@@ -175,58 +153,32 @@ public class ViewReplies extends AppCompatActivity implements ReplyAdapter.Reply
                     .addOnSuccessListener(documentSnapshot -> {
                         if (documentSnapshot.exists()) {
                             String content = ((EditText) findViewById(R.id.reply_edit_text)).getText().toString();
-                            if (rtr) {
-                                if (parentReply.isAnonymous()) {
-                                    content = "reply to " + parentReply.getAnonymousName() + ": " + content;
-                                }
-                                else {
-                                    content = "reply to " + parentReply.getName() + ": " + content;
-                                }
-                            }
                             Timestamp timestamp = Timestamp.now();
-                            Reply reply = new Reply(uid, content, timestamp, anonymous, "Anonymous", rtr);
+                            String parent_reply_id = "";
+                            if (rtr) {
+                                parent_reply_id = parentReply.getRid();
+                            }
+                            Reply reply = new Reply(uid, content, timestamp, anonymous, "Anonymous", rtr, parent_reply_id);
 
-                            if (!rtr) {
-                                db.collection(collection)
-                                        .document(postID)
-                                        .collection("replies")
-                                        .add(reply)
-                                        .addOnSuccessListener(documentReference -> {
-                                            reply.setRid(documentReference.getId());
-                                            documentReference.update("rid", documentReference.getId());
-                                            Toast.makeText(this, "Reply posted successfully", Toast.LENGTH_SHORT).show();
-                                            ((EditText) findViewById(R.id.reply_edit_text)).setText("");
-                                        })
-                                        .addOnFailureListener(e -> {
-                                            Log.d(TAG, "Could not add reply");
-                                            Toast.makeText(this, "Error adding reply: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                                        });
-                            }
-                            else {
-                                String parentRid = parentReply.getRid();
-                                Log.d(TAG, "Parent reply id: " + parentRid);
-                                db.collection(collection)
-                                        .document(postID)
-                                        .collection("replies")
-                                        .document(parentRid)
-                                        .collection("replies")
-                                        .add(reply)
-                                        .addOnSuccessListener(documentReference -> {
-                                            reply.setRid(documentReference.getId());
-                                            documentReference.update("rid", documentReference.getId());
-                                            Toast.makeText(this, "Reply posted successfully", Toast.LENGTH_SHORT).show();
-                                            ((EditText) findViewById(R.id.reply_edit_text)).setText("");
-                                        })
-                                        .addOnFailureListener(e -> {
-                                            Log.d(TAG, "Could not add reply");
-                                            Toast.makeText(this, "Error adding reply: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                                        });
-                            }
+                            db.collection(collection)
+                                    .document(postID)
+                                    .collection("replies")
+                                    .add(reply)
+                                    .addOnSuccessListener(documentReference -> {
+                                        reply.setRid(documentReference.getId());
+                                        documentReference.update("rid", documentReference.getId());
+                                        Toast.makeText(this, "Reply posted successfully", Toast.LENGTH_SHORT).show();
+                                        ((EditText) findViewById(R.id.reply_edit_text)).setText("");
+                                        fetchReplies();
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        Log.d(TAG, "Could not add reply");
+                                        Toast.makeText(this, "Error adding reply: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                    });
                         }
                     })
                     .addOnFailureListener(e -> Log.e(TAG, "Error: ", e));
         }
-        fetchReplies();
     }
 
     private void displayPost() {

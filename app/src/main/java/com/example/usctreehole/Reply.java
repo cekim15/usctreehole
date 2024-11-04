@@ -18,16 +18,18 @@ public class Reply {
     @Exclude
     private String name;
     private boolean nested_reply;
+    private String parent_reply_id;
 
     public Reply() {}
 
-    public Reply(String uid, String content, Timestamp timestamp, boolean anonymous, String anonymous_name, boolean nested_reply) {
+    public Reply(String uid, String content, Timestamp timestamp, boolean anonymous, String anonymous_name, boolean nested_reply, String parent_reply_id) {
         this.uid = uid;
         this.content = content;
         this.timestamp = timestamp;
         this.anonymous = anonymous;
         this.anonymous_name = anonymous_name;
         this.nested_reply = nested_reply;
+        this.parent_reply_id = parent_reply_id;
         Log.d("Reply", String.valueOf(this.nested_reply));
     }
 
@@ -40,9 +42,11 @@ public class Reply {
 
     public String getContent() { return this.content; }
 
+    public void setAnonymous(boolean anonymous) { this.anonymous = anonymous; }
     public boolean isAnonymous() { return this.anonymous; }
 
-    public String getAnonymousName() { return this.anonymous_name; }
+    public void setAnonymous_name(String anonymous_name) { this.anonymous_name = anonymous_name; }
+    public String getAnonymous_name() { return this.anonymous_name; }
 
     @Exclude
     public void setName(String name) {this.name = name; }
@@ -51,6 +55,9 @@ public class Reply {
 
     public void setNested(boolean nested) { this.nested_reply = nested; }
     public boolean isNested() { return this.nested_reply; }
+
+    public void setParent_reply_id(String pri) { this.parent_reply_id = pri; }
+    public String getParent_reply_id() { return this.parent_reply_id; }
 
     public Timestamp getTimestamp() {
         return timestamp;

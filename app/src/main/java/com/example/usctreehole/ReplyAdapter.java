@@ -26,16 +26,18 @@ public class ReplyAdapter extends RecyclerView.Adapter<ReplyAdapter.ReplyViewHol
         void onReplyToReply(Reply reply);
     }
 
-    private static final String TAG = "PostAdapter";
+    private static final String TAG = "ReplyAdapter";
     private final List<Reply> replies;
     private final Context context;
+    private final String collection;
     private final String pid;
     private final ReplyingToReplyListener rtrListener;
     private FirebaseFirestore db;
 
-    public ReplyAdapter(List<Reply> replies, Context context, String pid, ReplyingToReplyListener listener) {
+    public ReplyAdapter(List<Reply> replies, Context context, String collection, String pid, ReplyingToReplyListener listener) {
         this.replies = replies;
         this.context = context;
+        this.collection = collection;
         this.pid = pid;
         this.rtrListener = listener;
         this.db = FirebaseFirestore.getInstance();
@@ -51,7 +53,6 @@ public class ReplyAdapter extends RecyclerView.Adapter<ReplyAdapter.ReplyViewHol
     @Override
     public void onBindViewHolder(@NonNull ReplyViewHolder holder, int position) {
         Reply reply = replies.get(position);
-        holder.content.setText(reply.getContent());
         holder.timestamp.setText(String.valueOf(reply.getTimestampAsDate()));
 
         holder.reply_to_reply.setOnClickListener(v -> {
@@ -62,10 +63,45 @@ public class ReplyAdapter extends RecyclerView.Adapter<ReplyAdapter.ReplyViewHol
         ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams) holder.itemView.getLayoutParams();
         if (reply.isNested()) {
             Log.d(TAG, "loading nested reply with content " + reply.getContent());
-            int margin_dp = (int) TypedValue.applyDimension(
-                    TypedValue.COMPLEX_UNIT_DIP, 16, context.getResources().getDisplayMetrics());
-            layoutParams.setMarginStart(margin_dp);
-            holder.itemView.setLayoutParams(layoutParams);
+            db.collection(collection)
+                    .document(pid)
+                    .collection("replies")
+                    .document(reply.getParent_reply_id())
+                    .get()
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful() && task.getResult() != null) {
+                            DocumentSnapshot parent_reply = task.getResult();
+                            if (parent_reply.exists()) {
+                                Reply parent = parent_reply.toObject(Reply.class);
+                                String parentContent = parent.getContent();
+
+                                if (parent.isAnonymous()) {
+                                    String newContent = "[ Replying to " + parent.getAnonymous_name() + ": \"" + parentContent + "\" ]: " + reply.getContent();
+                                    holder.content.setText(newContent);
+                                }
+                                else {
+                                    String parent_uid = parent.getUid();
+                                    db.collection("users")
+                                            .document(parent_uid)
+                                            .get()
+                                            .addOnCompleteListener(parent_nametask -> {
+                                                if (parent_nametask.isSuccessful()) {
+                                                    DocumentSnapshot document = parent_nametask.getResult();
+                                                    if (document != null && document.exists()) {
+                                                        String parent_name = document.getString("name");
+                                                        String newContent = "[ Replying to " + parent_name + ": \"" + parentContent + "\" ]: " + reply.getContent();
+                                                        holder.content.setText(newContent);
+                                                    }
+                                                }
+                                            });
+                                }
+                            }
+                        } else {
+                            Log.e(TAG, "Error fetching parent reply", task.getException());
+                        }
+                    });
+        } else {
+            holder.content.setText(reply.getContent());
         }
 
         if (!reply.isAnonymous()) {
