@@ -37,9 +37,4 @@ public class AnonymousNameGenerator {
     public void removeUsedName(String used_name) {
         names.removeIf(name -> name.equals(used_name));
     }
-
-    public void resetNames() {
-        names.clear();
-        names.addAll(Arrays.asList(ALL_NAMES));
-    }
 }

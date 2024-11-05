@@ -3,7 +3,6 @@ package com.example.usctreehole;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -22,25 +21,18 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.RequestBuilder;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.google.android.material.navigation.NavigationView;
-import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
-import com.google.firebase.firestore.SetOptions;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class EditProfile extends AppCompatActivity {
@@ -105,9 +97,7 @@ public class EditProfile extends AppCompatActivity {
 
         // try and save changes to the database
         Button saveEdit = findViewById(R.id.save_profile_edit);
-        saveEdit.setOnClickListener(view -> {
-            saveProfileEdits();
-        });
+        saveEdit.setOnClickListener(view -> saveProfileEdits());
     }
 
     private void openFileChooser() {
@@ -127,7 +117,7 @@ public class EditProfile extends AppCompatActivity {
             String uid = currentUser.getUid();
 
             Map<String, Object> changedFields = new HashMap<>();
-            getChangedFields(changedFields, uid);
+            getChangedFields(changedFields);
 
             db.collection("users").document(uid)
                     .update(changedFields)
@@ -146,26 +136,24 @@ public class EditProfile extends AppCompatActivity {
                                                             byte[] image_data = resizeImage();
                                                             StorageReference fileReference = storageRef.child(uid + ".jpg");
                                                             fileReference.putBytes(image_data)
-                                                                    .addOnSuccessListener(taskSnapshot -> {
-                                                                        fileReference.getDownloadUrl().addOnSuccessListener(uri -> {
-                                                                            String urlToSave = uri.toString();
-                                                                            db.collection("users").document(uid)
-                                                                                    .update("profilePicUrl", urlToSave)
-                                                                                    .addOnSuccessListener(upload_new -> {
-                                                                                        Log.d(TAG, "uploaded new pfp to database");
-                                                                                        Log.d("TAG", "DocumentSnapshot successfully updated!");
-                                                                                        Toast.makeText(EditProfile.this, "Profile updated successfully", Toast.LENGTH_SHORT).show();
+                                                                    .addOnSuccessListener(taskSnapshot -> fileReference.getDownloadUrl().addOnSuccessListener(uri -> {
+                                                                        String urlToSave = uri.toString();
+                                                                        db.collection("users").document(uid)
+                                                                                .update("profilePicUrl", urlToSave)
+                                                                                .addOnSuccessListener(upload_new -> {
+                                                                                    Log.d(TAG, "uploaded new pfp to database");
+                                                                                    Log.d("TAG", "DocumentSnapshot successfully updated!");
+                                                                                    Toast.makeText(EditProfile.this, "Profile updated successfully", Toast.LENGTH_SHORT).show();
 
-                                                                                        Intent intent = new Intent(EditProfile.this, Profile.class);
-                                                                                        startActivity(intent);
-                                                                                        finish();
-                                                                                    })
-                                                                                    .addOnFailureListener(e -> {
-                                                                                        Log.w(TAG, "Error updating document with new profile picture", e);
-                                                                                        Toast.makeText(EditProfile.this, "Failed to update profile", Toast.LENGTH_SHORT).show();
-                                                                                    });
-                                                                        });
-                                                                    })
+                                                                                    Intent intent = new Intent(EditProfile.this, Profile.class);
+                                                                                    startActivity(intent);
+                                                                                    finish();
+                                                                                })
+                                                                                .addOnFailureListener(e -> {
+                                                                                    Log.w(TAG, "Error updating document with new profile picture", e);
+                                                                                    Toast.makeText(EditProfile.this, "Failed to update profile", Toast.LENGTH_SHORT).show();
+                                                                                });
+                                                                    }))
                                                                     .addOnFailureListener(e -> {
                                                                         Log.e(TAG, "Error uploading new profile picture: ", e);
                                                                         Toast.makeText(EditProfile.this, "Failed to upload profile picture", Toast.LENGTH_SHORT).show();
@@ -176,26 +164,24 @@ public class EditProfile extends AppCompatActivity {
                                                             byte[] image_data = resizeImage();
                                                             StorageReference fileReference = storageRef.child(uid + ".jpg");
                                                             fileReference.putBytes(image_data)
-                                                                    .addOnSuccessListener(taskSnapshot -> {
-                                                                        fileReference.getDownloadUrl().addOnSuccessListener(uri -> {
-                                                                            String urlToSave = uri.toString();
-                                                                            db.collection("users").document(uid)
-                                                                                    .update("profilePicUrl", urlToSave)
-                                                                                    .addOnSuccessListener(upload_new -> {
-                                                                                        Log.d(TAG, "uploaded new pfp to database");
-                                                                                        Log.d("TAG", "DocumentSnapshot successfully updated!");
-                                                                                        Toast.makeText(EditProfile.this, "Profile updated successfully", Toast.LENGTH_SHORT).show();
+                                                                    .addOnSuccessListener(taskSnapshot -> fileReference.getDownloadUrl().addOnSuccessListener(uri -> {
+                                                                        String urlToSave = uri.toString();
+                                                                        db.collection("users").document(uid)
+                                                                                .update("profilePicUrl", urlToSave)
+                                                                                .addOnSuccessListener(upload_new -> {
+                                                                                    Log.d(TAG, "uploaded new pfp to database");
+                                                                                    Log.d("TAG", "DocumentSnapshot successfully updated!");
+                                                                                    Toast.makeText(EditProfile.this, "Profile updated successfully", Toast.LENGTH_SHORT).show();
 
-                                                                                        Intent intent = new Intent(EditProfile.this, Profile.class);
-                                                                                        startActivity(intent);
-                                                                                        finish();
-                                                                                    })
-                                                                                    .addOnFailureListener(ughhh -> {
-                                                                                        Log.w(TAG, "Error updating document with new profile picture", e);
-                                                                                        Toast.makeText(EditProfile.this, "Failed to update profile", Toast.LENGTH_SHORT).show();
-                                                                                    });
-                                                                        });
-                                                                    })
+                                                                                    Intent intent = new Intent(EditProfile.this, Profile.class);
+                                                                                    startActivity(intent);
+                                                                                    finish();
+                                                                                })
+                                                                                .addOnFailureListener(ughhh -> {
+                                                                                    Log.w(TAG, "Error updating document with new profile picture", e);
+                                                                                    Toast.makeText(EditProfile.this, "Failed to update profile", Toast.LENGTH_SHORT).show();
+                                                                                });
+                                                                    }))
                                                                     .addOnFailureListener(sobbb -> {
                                                                         Log.e(TAG, "Error uploading new profile picture: ", e);
                                                                         Toast.makeText(EditProfile.this, "Failed to upload profile picture", Toast.LENGTH_SHORT).show();
@@ -224,12 +210,12 @@ public class EditProfile extends AppCompatActivity {
         }
     }
 
-    private void getChangedFields(Map<String, Object> changedFields, String uid) {
+    private void getChangedFields(Map<String, Object> changedFields) {
         String editedName = ((EditText) findViewById(R.id.enterName)).getText().toString();
         String editedID = ((EditText) findViewById(R.id.enterID)).getText().toString();
         Spinner roleSelect = findViewById(R.id.roleSelect);
         String editedRole = roleSelect.getSelectedItem().toString();
-        String newProfileUrl = "";
+        String newProfileUrl;
         changed_pic = false;
         if (profilepicuri != null) {
             newProfileUrl = profilepicuri.toString();
@@ -264,12 +250,16 @@ public class EditProfile extends AppCompatActivity {
         ((EditText) findViewById(R.id.enterID)).setText(old_ID);
         Spinner roleSelect = findViewById(R.id.roleSelect);
 
-        if (old_role.equals("Graduate Student")) {
-            roleSelect.setSelection(1);
-        } else if (old_role.equals("Faculty")) {
-            roleSelect.setSelection(2);
-        } else if (old_role.equals("Staff")) {
-            roleSelect.setSelection(3);
+        switch (old_role) {
+            case "Graduate Student":
+                roleSelect.setSelection(1);
+                break;
+            case "Faculty":
+                roleSelect.setSelection(2);
+                break;
+            case "Staff":
+                roleSelect.setSelection(3);
+                break;
         }
 
         profileImageView = findViewById(R.id.imageViewProfilePic);
