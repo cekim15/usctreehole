@@ -100,38 +100,36 @@ public class Signup extends AppCompatActivity {
                         String uid = Objects.requireNonNull(mAuth.getCurrentUser()).getUid();
                         StorageReference fileRef = storageRef.child(uid + ".jpg");
 
-                        byte[] image_data = resizeImage();
+                        fileRef.putFile(profilepicuri)
+                                .addOnSuccessListener(taskSnapshot -> {
+                                    fileRef.getDownloadUrl().addOnSuccessListener(uri -> {
+                                        // Create a map of user info
+                                        Map<String, Object> userInfo = new HashMap<>();
+                                        userInfo.put("name", name);
+                                        userInfo.put("uscID", uscID);
+                                        userInfo.put("role", role);
+                                        userInfo.put("profilePicUrl", uri.toString());
 
-                        // upload resized resolution pfp
-                        // if the image upload fails, delete the user as well
-                        fileRef.putBytes(image_data)
-                                .addOnSuccessListener(taskSnapshot -> fileRef.getDownloadUrl().addOnSuccessListener(uri -> {
-                                    // map of user info
-                                    Map<String, Object> userInfo = new HashMap<>();
-                                    userInfo.put("name", name);
-                                    userInfo.put("uscID", uscID);
-                                    userInfo.put("role", role);
-                                    userInfo.put("profilePicUrl", uri.toString());
-                                    userInfo.put("profilePicVersion", 0);
-
-                                    // subscription settings
-                                    userInfo.put("lifeSubscription", false);
-                                    userInfo.put("academicSubscription", false);
-                                    userInfo.put("eventSubscription", false);
-
-                                    // saving user info to firestore
-                                    db.collection("users").document(uid)
-                                            .set(userInfo)
-                                            .addOnSuccessListener(aVoid -> {
-                                                // go to main
-                                                Log.d(TAG, "User info saved");
-                                                Intent intent = new Intent(Signup.this, MainActivity.class);
-                                                startActivity(intent);
-                                                finish(); // close signup activity
-                                            })
-                                            .addOnFailureListener(this::deleteUserAndHandleError);
-                                }))
-                                .addOnFailureListener(this::deleteUserAndHandleError);
+                                        // Save user info to Firestore
+                                        db.collection("users").document(uid)
+                                                .set(userInfo)
+                                                .addOnSuccessListener(aVoid -> {
+                                                    // Navigate to MainActivity after successful user info saving
+                                                    Log.d(TAG, "User info saved");
+                                                    Intent intent = new Intent(Signup.this, MainActivity.class);
+                                                    startActivity(intent);
+                                                    finish(); // Close the Signup activity
+                                                })
+                                                .addOnFailureListener(e -> {
+                                                    // If saving user info fails, delete the user
+                                                    deleteUserAndHandleError(e);
+                                                });
+                                    });
+                                })
+                                .addOnFailureListener(e -> {
+                                    // If the image upload fails, delete the user as well
+                                    deleteUserAndHandleError(e);
+                                });
                     } else {
                         Log.d(TAG, "User creation failed");
                     }
