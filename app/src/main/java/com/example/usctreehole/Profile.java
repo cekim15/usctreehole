@@ -101,6 +101,7 @@ public class Profile extends AppCompatActivity {
     }
 
     private void loadUserInfo(String uid) {
+        Log.d(TAG, "loading user info");
         db.collection("users").document(uid).get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
@@ -108,6 +109,8 @@ public class Profile extends AppCompatActivity {
                         String uscID = documentSnapshot.getString("uscID");
                         String role = documentSnapshot.getString("role");
                         String profilePicUrl = documentSnapshot.getString("profilePicUrl");
+                        long version = documentSnapshot.getLong("profilePicVersion");
+                        Log.d(TAG, "got profile pic version and it was " + version);
 
                         editIntent.putExtra("name", name);
                         editIntent.putExtra("uscID", uscID);
@@ -128,12 +131,15 @@ public class Profile extends AppCompatActivity {
                         eventNotifications.setChecked(eventSubscribed);
 
                         if (profilePicUrl != null) {
+                            Log.d(TAG, "trying to load pfp " + profilePicUrl + " version " + version);
                             try {
                                 Glide.with(this)
                                         .load(profilePicUrl)
+                                        .signature(new ObjectKey(version))
                                         .override(80, 80)
                                         .placeholder(R.drawable.blank_profile_pic)
                                         .error(R.drawable.blank_profile_pic)
+                                        .centerCrop()
                                         .into(profileImageView);
                             } catch (Exception e) {
                                 Log.e(TAG, "Out of memory error while loading image", e);

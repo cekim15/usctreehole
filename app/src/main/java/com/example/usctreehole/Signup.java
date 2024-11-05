@@ -1,6 +1,8 @@
 package com.example.usctreehole;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -25,6 +27,9 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
+import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -62,27 +67,7 @@ public class Signup extends AppCompatActivity {
         View uploadImageButton = findViewById(R.id.uploadImageButton);
         uploadImageButton.setOnClickListener(view -> openFileChooser());
 
-        Toolbar toolbar = findViewById(R.id.my_toolbar);
-        setSupportActionBar(toolbar);
-
-        dl = findViewById(R.id.drawer_layout);
-        NavigationView nav = findViewById(R.id.nav_view);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, dl, toolbar,
-                R.string.navigation_drawer_open,
-                R.string.navigation_drawer_close);
-        dl.addDrawerListener(toggle);
-        toggle.syncState();
-
-        nav.setNavigationItemSelectedListener(item -> {
-            int id = item.getItemId();
-            if (id == R.id.nav_login) {
-                Intent intent = new Intent(Signup.this, Login.class);
-                startActivity(intent);
-            }
-            dl.closeDrawer(GravityCompat.START);
-            return true;
-        });
+        setUpToolbar();
 
         View signupButton = findViewById(R.id.signupButton);
         signupButton.setOnClickListener(view -> {
@@ -115,9 +100,11 @@ public class Signup extends AppCompatActivity {
                         String uid = Objects.requireNonNull(mAuth.getCurrentUser()).getUid();
                         StorageReference fileRef = storageRef.child(uid + ".jpg");
 
-                        // upload pfp
+                        byte[] image_data = resizeImage();
+
+                        // upload resized resolution pfp
                         // if the image upload fails, delete the user as well
-                        fileRef.putFile(profilepicuri)
+                        fileRef.putBytes(image_data)
                                 .addOnSuccessListener(taskSnapshot -> fileRef.getDownloadUrl().addOnSuccessListener(uri -> {
                                     // map of user info
                                     Map<String, Object> userInfo = new HashMap<>();
@@ -125,7 +112,7 @@ public class Signup extends AppCompatActivity {
                                     userInfo.put("uscID", uscID);
                                     userInfo.put("role", role);
                                     userInfo.put("profilePicUrl", uri.toString());
-                                    userInfo.put("profilePicVersion", System.currentTimeMillis());
+                                    userInfo.put("profilePicVersion", 0);
 
                                     // subscription settings
                                     userInfo.put("lifeSubscription", false);
@@ -151,6 +138,23 @@ public class Signup extends AppCompatActivity {
                 });
     }
 
+    private byte[] resizeImage() {
+        InputStream inputStream = null;
+        try {
+            inputStream = getContentResolver().openInputStream(profilepicuri);
+        } catch (FileNotFoundException e) {
+            Log.e(TAG, "file not found exception " + e.getMessage());
+        }
+        Bitmap og_bitmap = BitmapFactory.decodeStream(inputStream);
+        int target_width = 300;
+        int target_height = (og_bitmap.getHeight() * target_width) / og_bitmap.getWidth();
+        Bitmap resized = Bitmap.createScaledBitmap(og_bitmap, target_width, target_height, true);
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        resized.compress(Bitmap.CompressFormat.JPEG, 80, baos);
+        return baos.toByteArray();
+    }
+
     private void deleteUserAndHandleError(Exception e) {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null) {
@@ -164,18 +168,35 @@ public class Signup extends AppCompatActivity {
         }
     }
 
+    public void setUpToolbar() {
+        Toolbar toolbar = findViewById(R.id.my_toolbar);
+        setSupportActionBar(toolbar);
+
+        dl = findViewById(R.id.drawer_layout);
+        NavigationView nav = findViewById(R.id.nav_view);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, dl, toolbar,
+                R.string.navigation_drawer_open,
+                R.string.navigation_drawer_close);
+        dl.addDrawerListener(toggle);
+        toggle.syncState();
+
+        nav.setNavigationItemSelectedListener(item -> {
+            int id = item.getItemId();
+            if (id == R.id.nav_login) {
+                Intent intent = new Intent(Signup.this, Login.class);
+                startActivity(intent);
+            }
+            dl.closeDrawer(GravityCompat.START);
+            return true;
+        });
+    }
+
     public void onStart() {
         super.onStart();
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null) {
-            reload(currentUser);
-        }
-    }
-
-    private void reload(FirebaseUser user) {
-        Log.d(TAG, "called reload");
-        if (user != null) {
-            Intent intent = new Intent (Signup.this, MainActivity.class);
+            Intent intent = new Intent(Signup.this, MainActivity.class);
             startActivity(intent);
             finish();
         }
