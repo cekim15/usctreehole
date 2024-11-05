@@ -11,7 +11,7 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingBottom="24dp">
+        android:paddingBottom="1dp">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/main"
@@ -107,7 +107,7 @@
                 android:id="@+id/roleSelect"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="10dp"
                 android:entries="@array/roles_array"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.0"
@@ -118,7 +118,7 @@
                 android:id="@+id/imageViewProfilePic"
                 android:layout_width="100dp"
                 android:layout_height="100dp"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="20dp"
                 android:contentDescription="Profile Picture"
                 android:scaleType="centerCrop"
                 android:src="@drawable/blank_profile_pic"
@@ -131,7 +131,7 @@
                 android:id="@+id/uploadImageButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="10dp"
                 android:text="Upload Profile Picture"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -142,7 +142,7 @@
                 android:id="@+id/signupButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="4dp"
                 android:backgroundTint="@android:color/holo_green_dark"
                 android:text="Sign Up"
                 android:textColor="#FFFFFF"
