@@ -57,8 +57,14 @@ public class MainActivity extends AppCompatActivity {
         setUpTabs();
         Log.d(TAG, "On create viewing is: " + viewing);
 
+//        ImageView notifications = findViewById(R.id.notification_bell);
+//        notifications.setOnClickListener(v -> openNotifications());
+
         ImageView notifications = findViewById(R.id.notification_bell);
-        notifications.setOnClickListener(v -> openNotifications());
+        notifications.setOnClickListener(v -> {
+            // Open right-side menu (notification drawer)
+            dl.openDrawer(GravityCompat.END);
+        });
 
         rv = findViewById(R.id.recycler_view);
         rv.setLayoutManager(new LinearLayoutManager(this));
@@ -157,6 +163,19 @@ public class MainActivity extends AppCompatActivity {
             dl.closeDrawer(GravityCompat.START);
             return true;
         });
+
+
+        NavigationView notification = findViewById(R.id.notification_menu);
+        ActionBarDrawerToggle notificationToggle = new ActionBarDrawerToggle(
+                this, dl, toolbar,
+                R.string.navigation_drawer_open,
+                R.string.navigation_drawer_close);
+        dl.addDrawerListener(notificationToggle);
+        toggle.syncState();
+
+        notification.setNavigationItemSelectedListener(item -> {
+            return true;
+        });
     }
 
     private void setUpTabs() {
@@ -198,10 +217,5 @@ public class MainActivity extends AppCompatActivity {
         } else if (viewing.equals("eventPosts")) {
             categoryTabs.selectTab(categoryTabs.getTabAt(2));
         }
-    }
-
-    private void openNotifications() {
-        // open notifications screen?
-        Toast.makeText(this, "Notifications Clicked", Toast.LENGTH_SHORT).show();
     }
 }
