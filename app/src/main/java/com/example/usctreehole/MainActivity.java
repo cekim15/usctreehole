@@ -232,6 +232,8 @@ public class MainActivity extends AppCompatActivity {
         if (currentUser != null) {
             String userId = currentUser.getUid(); // Get the current user's ID
 
+            //notificationPosts.clear(); //clear notifications to prevent duplicates
+
             // Query Firestore to get the current user's subscriptions
             db.collection("users").document(userId).get().addOnCompleteListener(task -> {
                 if (task.isSuccessful() && task.getResult().exists()) {
@@ -245,14 +247,17 @@ public class MainActivity extends AppCompatActivity {
                     handleSubscriptions(academicSub, eventSub, lifeSub);  // Set subscription flags first
                     Log.d(TAG, "Subscriptions - Academic: " + academicSub + ", Event: " + eventSub + ", Life: " + lifeSub);
 
+                    notificationPosts.clear();
                     // Fetch the posts after setting the flags
                     fetchPostsForNotifications();  // Ensure this is called after flags are set
 
                     // Set up the notification posts RecyclerView
-                    PostAdapterNotification notificationAdapter = new PostAdapterNotification(notificationPosts, this, "notifications");
-                    RecyclerView notificationRecyclerView = findViewById(R.id.notification_recycler_view);
-                    notificationRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-                    notificationRecyclerView.setAdapter(notificationAdapter);
+                        PostAdapterNotification notificationAdapter = new PostAdapterNotification(notificationPosts, this, "notifications");
+                        RecyclerView notificationRecyclerView = findViewById(R.id.notification_recycler_view);
+                        notificationRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+                        notificationRecyclerView.setAdapter(notificationAdapter);
+
+
                 } else {
                     Log.w(TAG, "User document does not exist or could not be retrieved.", task.getException());
                     Toast.makeText(MainActivity.this, "Failed to load notifications", Toast.LENGTH_SHORT).show();
@@ -278,7 +283,9 @@ public class MainActivity extends AppCompatActivity {
                                 post.setPid(document.getId());
                                 notificationPosts.add(post);
                             }
+
                             handleNotifications(notificationPosts);
+                            updateNotificationRecyclerView();
                         } else {
                             Log.w(TAG, "Error getting notification posts.", task.getException());
                             Toast.makeText(MainActivity.this, "Failed to load notifications", Toast.LENGTH_SHORT).show();
@@ -298,6 +305,7 @@ public class MainActivity extends AppCompatActivity {
                                 posts.add(post);
                             }
                             handleNotifications(posts);
+                            updateNotificationRecyclerView();
                         } else {
                             Log.w(TAG, "Error getting notification posts.", task.getException());
                             Toast.makeText(MainActivity.this, "Failed to load notifications", Toast.LENGTH_SHORT).show();
@@ -317,11 +325,19 @@ public class MainActivity extends AppCompatActivity {
                                 posts.add(post);
                             }
                             handleNotifications(posts);
+                            updateNotificationRecyclerView();
                         } else {
                             Log.w(TAG, "Error getting notification posts.", task.getException());
                             Toast.makeText(MainActivity.this, "Failed to load notifications", Toast.LENGTH_SHORT).show();
                         }
                     });
+        }
+    }
+
+    private void updateNotificationRecyclerView() {
+        RecyclerView notificationRecyclerView = findViewById(R.id.notification_recycler_view);
+        if (notificationRecyclerView.getAdapter() != null) {
+            notificationRecyclerView.getAdapter().notifyDataSetChanged();
         }
     }
 
