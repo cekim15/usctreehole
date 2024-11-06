@@ -1,8 +1,6 @@
 package com.example.usctreehole;
 
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -29,9 +27,6 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
-import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -65,6 +60,7 @@ public class EditProfile extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
+        Log.d(TAG, "creating edit profile activity");
 
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser == null) {
@@ -133,9 +129,9 @@ public class EditProfile extends AppCompatActivity {
                                                 old_file.delete()
                                                         .addOnSuccessListener(oldDelete -> {
                                                             Log.d(TAG, "Old profile picture deleted successfully");
-                                                            byte[] image_data = resizeImage();
+                                                            //byte[] image_data = resizeImage();
                                                             StorageReference fileReference = storageRef.child(uid + ".jpg");
-                                                            fileReference.putBytes(image_data)
+                                                            fileReference.putFile(profilepicuri)
                                                                     .addOnSuccessListener(taskSnapshot -> fileReference.getDownloadUrl().addOnSuccessListener(uri -> {
                                                                         String urlToSave = uri.toString();
                                                                         db.collection("users").document(uid)
@@ -161,9 +157,9 @@ public class EditProfile extends AppCompatActivity {
                                                         })
                                                         .addOnFailureListener(e -> {
                                                             Log.e(TAG, "Error deleting old profile picture: ", e);
-                                                            byte[] image_data = resizeImage();
+                                                            //byte[] image_data = resizeImage();
                                                             StorageReference fileReference = storageRef.child(uid + ".jpg");
-                                                            fileReference.putBytes(image_data)
+                                                            fileReference.putFile(profilepicuri)
                                                                     .addOnSuccessListener(taskSnapshot -> fileReference.getDownloadUrl().addOnSuccessListener(uri -> {
                                                                         String urlToSave = uri.toString();
                                                                         db.collection("users").document(uid)
@@ -273,7 +269,7 @@ public class EditProfile extends AppCompatActivity {
         }
     }
 
-    private byte[] resizeImage() {
+    /*private byte[] resizeImage() {
         InputStream inputStream = null;
         try {
             inputStream = getContentResolver().openInputStream(profilepicuri);
@@ -288,7 +284,7 @@ public class EditProfile extends AppCompatActivity {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         resized.compress(Bitmap.CompressFormat.JPEG, 80, baos);
         return baos.toByteArray();
-    }
+    } */
 
     private void setUpToolbar() {
         Toolbar toolbar = findViewById(R.id.my_toolbar);

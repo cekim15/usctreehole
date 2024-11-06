@@ -10,6 +10,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
@@ -18,6 +20,10 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.bumptech.glide.RequestBuilder;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.Target;
 import com.bumptech.glide.signature.ObjectKey;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
@@ -38,6 +44,7 @@ public class Profile extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
+        Log.d(TAG, "creating profile activity");
 
         editIntent = new Intent(Profile.this, EditProfile.class);
         setUpToolbar();
@@ -69,7 +76,7 @@ public class Profile extends AppCompatActivity {
         Button editProfileButton = findViewById(R.id.editProfileButton);
         editProfileButton.setOnClickListener(view -> {
             startActivity(editIntent);
-            finish();
+            //finish();
         });
     }
 
@@ -133,15 +140,17 @@ public class Profile extends AppCompatActivity {
                         if (profilePicUrl != null) {
                             Log.d(TAG, "trying to load pfp " + profilePicUrl + " version " + version);
                             try {
-                                Glide.with(this)
-                                        .load(profilePicUrl)
-                                        .signature(new ObjectKey(version))
-                                        .override(80, 80)
-                                        .placeholder(R.drawable.blank_profile_pic)
-                                        .error(R.drawable.blank_profile_pic)
-                                        .centerCrop()
-                                        .into(profileImageView);
-                            } catch (Exception e) {
+                                if (!isDestroyed()) {
+                                    Glide.with(this)
+                                            .load(profilePicUrl)
+                                            .signature(new ObjectKey(version))
+                                            .override(80, 80)
+                                            .placeholder(R.drawable.blank_profile_pic)
+                                            .error(R.drawable.blank_profile_pic)
+                                            .centerCrop()
+                                            .into(profileImageView);
+                                }
+                            } catch (OutOfMemoryError e) {
                                 Log.e(TAG, "Out of memory error while loading image", e);
                                 Toast.makeText(this, "Failed to load image. Please try again.", Toast.LENGTH_SHORT).show();
                             }

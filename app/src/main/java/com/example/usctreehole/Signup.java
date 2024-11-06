@@ -1,8 +1,6 @@
 package com.example.usctreehole;
 
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -27,9 +25,6 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
-import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -100,13 +95,8 @@ public class Signup extends AppCompatActivity {
                         String uid = Objects.requireNonNull(mAuth.getCurrentUser()).getUid();
                         StorageReference fileRef = storageRef.child(uid + ".jpg");
 
-                        byte[] image_data = resizeImage();
-
-                        // upload resized resolution pfp
-                        // if the image upload fails, delete the user as well
-                        fileRef.putBytes(image_data)
+                        fileRef.putFile(profilepicuri)
                                 .addOnSuccessListener(taskSnapshot -> fileRef.getDownloadUrl().addOnSuccessListener(uri -> {
-                                    // map of user info
                                     Map<String, Object> userInfo = new HashMap<>();
                                     userInfo.put("name", name);
                                     userInfo.put("uscID", uscID);
@@ -119,15 +109,13 @@ public class Signup extends AppCompatActivity {
                                     userInfo.put("academicSubscription", false);
                                     userInfo.put("eventSubscription", false);
 
-                                    // saving user info to firestore
                                     db.collection("users").document(uid)
                                             .set(userInfo)
                                             .addOnSuccessListener(aVoid -> {
-                                                // go to main
                                                 Log.d(TAG, "User info saved");
                                                 Intent intent = new Intent(Signup.this, MainActivity.class);
                                                 startActivity(intent);
-                                                finish(); // close signup activity
+                                                finish();
                                             })
                                             .addOnFailureListener(this::deleteUserAndHandleError);
                                 }))
@@ -138,7 +126,7 @@ public class Signup extends AppCompatActivity {
                 });
     }
 
-    private byte[] resizeImage() {
+    /*private byte[] resizeImage() {
         InputStream inputStream = null;
         try {
             inputStream = getContentResolver().openInputStream(profilepicuri);
@@ -153,7 +141,7 @@ public class Signup extends AppCompatActivity {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         resized.compress(Bitmap.CompressFormat.JPEG, 80, baos);
         return baos.toByteArray();
-    }
+    } */
 
     private void deleteUserAndHandleError(Exception e) {
         FirebaseUser currentUser = mAuth.getCurrentUser();
