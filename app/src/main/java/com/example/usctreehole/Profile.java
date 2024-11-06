@@ -148,24 +148,6 @@ public class Profile extends AppCompatActivity {
                                             .placeholder(R.drawable.blank_profile_pic)
                                             .error(R.drawable.blank_profile_pic)
                                             .centerCrop()
-                                            .listener(new RequestListener<Drawable>() {
-                                                @Override
-                                                public boolean onLoadFailed(@Nullable GlideException e, Object model,
-                                                                            Target<Drawable> target, boolean isFirstResource) {
-                                                    Log.e(TAG, "Error loading image", e);
-                                                    Glide.get(Profile.this).clearMemory();
-                                                    Glide.with(Profile.this).clear(profileImageView);
-                                                    Toast.makeText(Profile.this, "Failed to load image. Please try again.", Toast.LENGTH_SHORT).show();
-                                                    return false;
-                                                }
-
-                                                @Override
-                                                public boolean onResourceReady(Drawable resource, Object model,
-                                                                               Target<Drawable> target, DataSource dataSource,
-                                                                               boolean isFirstResource) {
-                                                    return false;
-                                                }
-                                            })
                                             .into(profileImageView);
                                 }
                             } catch (OutOfMemoryError e) {
