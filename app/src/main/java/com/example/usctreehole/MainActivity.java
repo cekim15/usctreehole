@@ -227,7 +227,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void fetchNotificationPosts() {
-
         FirebaseUser currentUser = mAuth.getCurrentUser();
 
         if (currentUser != null) {
@@ -243,10 +242,17 @@ public class MainActivity extends AppCompatActivity {
                     boolean eventSub = Boolean.TRUE.equals(document.getBoolean("eventSubscription"));
                     boolean lifeSub = Boolean.TRUE.equals(document.getBoolean("lifeSubscription"));
 
-                    handleSubscriptions(academicSub, eventSub, lifeSub);
-
+                    handleSubscriptions(academicSub, eventSub, lifeSub);  // Set subscription flags first
                     Log.d(TAG, "Subscriptions - Academic: " + academicSub + ", Event: " + eventSub + ", Life: " + lifeSub);
 
+                    // Fetch the posts after setting the flags
+                    fetchPostsForNotifications();  // Ensure this is called after flags are set
+
+                    // Set up the notification posts RecyclerView
+                    PostAdapterNotification notificationAdapter = new PostAdapterNotification(notificationPosts, this, "notifications");
+                    RecyclerView notificationRecyclerView = findViewById(R.id.notification_recycler_view);
+                    notificationRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+                    notificationRecyclerView.setAdapter(notificationAdapter);
                 } else {
                     Log.w(TAG, "User document does not exist or could not be retrieved.", task.getException());
                     Toast.makeText(MainActivity.this, "Failed to load notifications", Toast.LENGTH_SHORT).show();
@@ -256,8 +262,12 @@ public class MainActivity extends AppCompatActivity {
             Log.w(TAG, "Current user is null. Ensure user is logged in.");
             Toast.makeText(MainActivity.this, "Please log in first", Toast.LENGTH_SHORT).show();
         }
+    }
 
-        if(lifePosts){
+
+    private void fetchPostsForNotifications() {
+        // Fetch notifications only after setting the flags
+        if(lifePosts) {
             db.collection("lifePosts")
                     .orderBy("timestamp", Query.Direction.DESCENDING)
                     .get()
@@ -268,14 +278,14 @@ public class MainActivity extends AppCompatActivity {
                                 post.setPid(document.getId());
                                 notificationPosts.add(post);
                             }
-                            handleNotifications(posts);
+                            handleNotifications(notificationPosts);
                         } else {
                             Log.w(TAG, "Error getting notification posts.", task.getException());
                             Toast.makeText(MainActivity.this, "Failed to load notifications", Toast.LENGTH_SHORT).show();
                         }
                     });
         }
-        if(academicPosts){
+        if(academicPosts) {
             db.collection("academicPosts")
                     .orderBy("timestamp", Query.Direction.DESCENDING)
                     .get()
@@ -294,7 +304,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                     });
         }
-        if(eventPosts){
+        if(eventPosts) {
             db.collection("eventPosts")
                     .orderBy("timestamp", Query.Direction.DESCENDING)
                     .get()
@@ -313,11 +323,6 @@ public class MainActivity extends AppCompatActivity {
                         }
                     });
         }
-
-        PostAdapterNotification notificationAdapter = new PostAdapterNotification(notificationPosts, this, "notifications");
-        RecyclerView notificationRecyclerView = findViewById(R.id.notification_recycler_view);
-        notificationRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        notificationRecyclerView.setAdapter(notificationAdapter);
     }
 
     private void handleSubscriptions(boolean isAcademicSubscribed, boolean isEventSubscribed, boolean isLifeSubscribed){
