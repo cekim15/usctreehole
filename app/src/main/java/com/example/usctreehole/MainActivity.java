@@ -272,6 +272,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void fetchPostsForNotifications() {
         // Fetch notifications only after setting the flags
+        notificationPosts.clear();
         if(lifePosts) {
             db.collection("lifePosts")
                     .orderBy("timestamp", Query.Direction.DESCENDING)
