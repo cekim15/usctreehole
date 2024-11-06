@@ -49,6 +49,12 @@ public class Profile extends AppCompatActivity {
         editIntent = new Intent(Profile.this, EditProfile.class);
         setUpToolbar();
 
+        ImageView notifications = findViewById(R.id.notification_bell);
+        notifications.setOnClickListener(v -> {
+            // Open right-side menu (notification drawer)
+            dl.openDrawer(GravityCompat.END);
+        });
+
         profileImageView = findViewById(R.id.profileImageView);
         nameTextView = findViewById(R.id.nameTextView);
         uscIdTextView = findViewById(R.id.uscIdTextView);
@@ -103,6 +109,18 @@ public class Profile extends AppCompatActivity {
                 startActivity(intent);
             }
             dl.closeDrawer(GravityCompat.START);
+            return true;
+        });
+
+        NavigationView notification = findViewById(R.id.notification_menu);
+        ActionBarDrawerToggle notificationToggle = new ActionBarDrawerToggle(
+                this, dl, toolbar,
+                R.string.navigation_drawer_open,
+                R.string.navigation_drawer_close);
+        dl.addDrawerListener(notificationToggle);
+        toggle.syncState();
+
+        notification.setNavigationItemSelectedListener(item -> {
             return true;
         });
     }

@@ -63,8 +63,14 @@ public class CreatePost extends AppCompatActivity {
         setContentView(R.layout.activity_create_post);
         setUpToolbar();
 
+//        ImageView notifications = findViewById(R.id.notification_bell);
+//        notifications.setOnClickListener(v -> openNotifications());
+
         ImageView notifications = findViewById(R.id.notification_bell);
-        notifications.setOnClickListener(v -> openNotifications());
+        notifications.setOnClickListener(v -> {
+            // Open right-side menu (notification drawer)
+            dl.openDrawer(GravityCompat.END);
+        });
 
         Intent fromMain = getIntent();
         String viewing = fromMain.getStringExtra("viewing");
@@ -158,10 +164,22 @@ public class CreatePost extends AppCompatActivity {
             dl.closeDrawer(GravityCompat.START);
             return true;
         });
+
+        NavigationView notification = findViewById(R.id.notification_menu);
+        ActionBarDrawerToggle notificationToggle = new ActionBarDrawerToggle(
+                this, dl, toolbar,
+                R.string.navigation_drawer_open,
+                R.string.navigation_drawer_close);
+        dl.addDrawerListener(notificationToggle);
+        toggle.syncState();
+
+        notification.setNavigationItemSelectedListener(item -> {
+            return true;
+        });
     }
 
-    private void openNotifications() {
-        // open notifications screen?
-        Toast.makeText(this, "Notifications Clicked", Toast.LENGTH_SHORT).show();
-    }
+//    private void openNotifications() {
+//        // open notifications screen?
+//        Toast.makeText(this, "Notifications Clicked", Toast.LENGTH_SHORT).show();
+//    }
 }
