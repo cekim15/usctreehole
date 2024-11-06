@@ -63,6 +63,7 @@ public class MainActivity extends AppCompatActivity {
         ImageView notifications = findViewById(R.id.notification_bell);
         notifications.setOnClickListener(v -> {
             // Open right-side menu (notification drawer)
+            fetchNotificationPosts();
             dl.openDrawer(GravityCompat.END);
         });
 
@@ -218,4 +219,32 @@ public class MainActivity extends AppCompatActivity {
             categoryTabs.selectTab(categoryTabs.getTabAt(2));
         }
     }
+
+    private void fetchNotificationPosts() {
+        boolean lifePosts = false;
+        boolean eventPosts = false;
+        boolean academicPosts = false;
+
+        db.collection("lifePosts")
+                .orderBy("timestamp", Query.Direction.DESCENDING)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        List<Post> notificationPosts = new ArrayList<>();
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            Post post = document.toObject(Post.class);
+                            post.setPid(document.getId());
+                            notificationPosts.add(post);
+                        }
+                        PostAdapterNotification notificationAdapter = new PostAdapterNotification(notificationPosts, this, "notifications");
+                        RecyclerView notificationRecyclerView = findViewById(R.id.notification_recycler_view);
+                        notificationRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+                        notificationRecyclerView.setAdapter(notificationAdapter);
+                    } else {
+                        Log.w(TAG, "Error getting notification posts.", task.getException());
+                        Toast.makeText(MainActivity.this, "Failed to load notifications", Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
 }
