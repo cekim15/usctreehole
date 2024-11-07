@@ -78,4 +78,19 @@
         android:layout_gravity="start"
         app:menu="@menu/drawer_menu" />
 
+    <com.google.android.material.navigation.NavigationView
+        android:id="@+id/notification_menu"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="end"
+        app:menu="@menu/drawer_menu_notifications">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/notification_recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scrollbars="vertical"/>
+    </com.google.android.material.navigation.NavigationView>
+
+
 </androidx.drawerlayout.widget.DrawerLayout>

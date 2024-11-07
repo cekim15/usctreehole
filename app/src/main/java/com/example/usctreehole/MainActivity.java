@@ -19,10 +19,12 @@ import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import java.sql.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,6 +38,10 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
     private String viewing;
     private TabLayout categoryTabs;
+    boolean lifePosts = false;
+    boolean eventPosts = false;
+    boolean academicPosts = false;
+    List<Post> notificationPosts = new ArrayList<Post>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,8 +63,15 @@ public class MainActivity extends AppCompatActivity {
         setUpTabs();
         Log.d(TAG, "On create viewing is: " + viewing);
 
+//        ImageView notifications = findViewById(R.id.notification_bell);
+//        notifications.setOnClickListener(v -> openNotifications());
+
         ImageView notifications = findViewById(R.id.notification_bell);
-        notifications.setOnClickListener(v -> openNotifications());
+        notifications.setOnClickListener(v -> {
+            // Open right-side menu (notification drawer)
+            fetchNotificationPosts();
+            dl.openDrawer(GravityCompat.END);
+        });
 
         rv = findViewById(R.id.recycler_view);
         rv.setLayoutManager(new LinearLayoutManager(this));
@@ -157,6 +170,19 @@ public class MainActivity extends AppCompatActivity {
             dl.closeDrawer(GravityCompat.START);
             return true;
         });
+
+
+        NavigationView notification = findViewById(R.id.notification_menu);
+        ActionBarDrawerToggle notificationToggle = new ActionBarDrawerToggle(
+                this, dl, toolbar,
+                R.string.navigation_drawer_open,
+                R.string.navigation_drawer_close);
+        dl.addDrawerListener(notificationToggle);
+        toggle.syncState();
+
+        notification.setNavigationItemSelectedListener(item -> {
+            return true;
+        });
     }
 
     private void setUpTabs() {
@@ -200,8 +226,130 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void openNotifications() {
-        // open notifications screen?
-        Toast.makeText(this, "Notifications Clicked", Toast.LENGTH_SHORT).show();
+    private void fetchNotificationPosts() {
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+
+        if (currentUser != null) {
+            String userId = currentUser.getUid(); // Get the current user's ID
+
+            //notificationPosts.clear(); //clear notifications to prevent duplicates
+
+            // Query Firestore to get the current user's subscriptions
+            db.collection("users").document(userId).get().addOnCompleteListener(task -> {
+                if (task.isSuccessful() && task.getResult().exists()) {
+                    DocumentSnapshot document = task.getResult();
+
+                    // Retrieve subscription options
+                    boolean academicSub = Boolean.TRUE.equals(document.getBoolean("academicSubscription"));
+                    boolean eventSub = Boolean.TRUE.equals(document.getBoolean("eventSubscription"));
+                    boolean lifeSub = Boolean.TRUE.equals(document.getBoolean("lifeSubscription"));
+
+                    handleSubscriptions(academicSub, eventSub, lifeSub);  // Set subscription flags first
+                    Log.d(TAG, "Subscriptions - Academic: " + academicSub + ", Event: " + eventSub + ", Life: " + lifeSub);
+
+                    notificationPosts.clear();
+                    // Fetch the posts after setting the flags
+                    fetchPostsForNotifications();  // Ensure this is called after flags are set
+
+                    // Set up the notification posts RecyclerView
+                        PostAdapterNotification notificationAdapter = new PostAdapterNotification(notificationPosts, this, "notifications");
+                        RecyclerView notificationRecyclerView = findViewById(R.id.notification_recycler_view);
+                        notificationRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+                        notificationRecyclerView.setAdapter(notificationAdapter);
+
+
+                } else {
+                    Log.w(TAG, "User document does not exist or could not be retrieved.", task.getException());
+                    Toast.makeText(MainActivity.this, "Failed to load notifications", Toast.LENGTH_SHORT).show();
+                }
+            });
+        } else {
+            Log.w(TAG, "Current user is null. Ensure user is logged in.");
+            Toast.makeText(MainActivity.this, "Please log in first", Toast.LENGTH_SHORT).show();
+        }
     }
+
+
+    private void fetchPostsForNotifications() {
+        // Fetch notifications only after setting the flags
+        notificationPosts.clear();
+        if(lifePosts) {
+            db.collection("lifePosts")
+                    .orderBy("timestamp", Query.Direction.DESCENDING)
+                    .get()
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                Post post = document.toObject(Post.class);
+                                post.setPid(document.getId());
+                                notificationPosts.add(post);
+                            }
+
+                            handleNotifications(notificationPosts);
+                            updateNotificationRecyclerView();
+                        } else {
+                            Log.w(TAG, "Error getting notification posts.", task.getException());
+                            Toast.makeText(MainActivity.this, "Failed to load notifications", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+        }
+        if(academicPosts) {
+            db.collection("academicPosts")
+                    .orderBy("timestamp", Query.Direction.DESCENDING)
+                    .get()
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            ArrayList<Post> posts = new ArrayList<Post>();
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                Post post = document.toObject(Post.class);
+                                post.setPid(document.getId());
+                                posts.add(post);
+                            }
+                            handleNotifications(posts);
+                            updateNotificationRecyclerView();
+                        } else {
+                            Log.w(TAG, "Error getting notification posts.", task.getException());
+                            Toast.makeText(MainActivity.this, "Failed to load notifications", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+        }
+        if(eventPosts) {
+            db.collection("eventPosts")
+                    .orderBy("timestamp", Query.Direction.DESCENDING)
+                    .get()
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            ArrayList<Post> posts = new ArrayList<Post>();
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                Post post = document.toObject(Post.class);
+                                post.setPid(document.getId());
+                                posts.add(post);
+                            }
+                            handleNotifications(posts);
+                            updateNotificationRecyclerView();
+                        } else {
+                            Log.w(TAG, "Error getting notification posts.", task.getException());
+                            Toast.makeText(MainActivity.this, "Failed to load notifications", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+        }
+    }
+
+    private void updateNotificationRecyclerView() {
+        RecyclerView notificationRecyclerView = findViewById(R.id.notification_recycler_view);
+        if (notificationRecyclerView.getAdapter() != null) {
+            notificationRecyclerView.getAdapter().notifyDataSetChanged();
+        }
+    }
+
+    private void handleSubscriptions(boolean isAcademicSubscribed, boolean isEventSubscribed, boolean isLifeSubscribed){
+        academicPosts = isAcademicSubscribed;
+        eventPosts = isEventSubscribed;
+        lifePosts = isLifeSubscribed;
+    }
+
+    private void handleNotifications(List<Post> posts){
+        notificationPosts.addAll(posts);
+    }
+
 }

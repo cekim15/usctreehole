@@ -63,8 +63,14 @@ public class CreatePost extends AppCompatActivity {
         setContentView(R.layout.activity_create_post);
         setUpToolbar();
 
+//        ImageView notifications = findViewById(R.id.notification_bell);
+//        notifications.setOnClickListener(v -> openNotifications());
+
         ImageView notifications = findViewById(R.id.notification_bell);
-        notifications.setOnClickListener(v -> openNotifications());
+        notifications.setOnClickListener(v -> {
+            // Open right-side menu (notification drawer)
+            dl.openDrawer(GravityCompat.END);
+        });
 
         Intent fromMain = getIntent();
         String viewing = fromMain.getStringExtra("viewing");
@@ -158,72 +164,22 @@ public class CreatePost extends AppCompatActivity {
             dl.closeDrawer(GravityCompat.START);
             return true;
         });
+
+        NavigationView notification = findViewById(R.id.notification_menu);
+        ActionBarDrawerToggle notificationToggle = new ActionBarDrawerToggle(
+                this, dl, toolbar,
+                R.string.navigation_drawer_open,
+                R.string.navigation_drawer_close);
+        dl.addDrawerListener(notificationToggle);
+        toggle.syncState();
+
+        notification.setNavigationItemSelectedListener(item -> {
+            return true;
+        });
     }
 
-    private void openNotifications() {
-        // open notifications screen?
-        Toast.makeText(this, "Notifications Clicked", Toast.LENGTH_SHORT).show();
-    }
-
-
-
-    //Post Notifications
-    private void createNotificationChannel() {
-        // Create the NotificationChannel, but only on API 26+ because
-        // the NotificationChannel class is not in the Support Library.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            CharSequence name = getString(R.string.channel_name);
-            String description = getString(R.string.channel_description);
-            int importance = NotificationManager.IMPORTANCE_DEFAULT;
-            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
-            channel.setDescription(description);
-            // Register the channel with the system; you can't change the importance
-            // or other notification behaviors after this.
-            NotificationManager notificationManager = getSystemService(NotificationManager.class);
-            notificationManager.createNotificationChannel(channel);
-        }
-    }
-
-
-    public void showPostNotification(String textTitle, String textContent){
-        String CHANNEL_ID = "post_notification_channel";
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE);
-
-
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_notification_bell)
-                .setContentTitle("New Post Created")
-                .setContentText("A new post was added to your feed")
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT);
-
-
-        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
-        if (ActivityCompat.checkSelfPermission(
-                this,
-                Manifest.permission.POST_NOTIFICATIONS
-       ) != PackageManager.PERMISSION_GRANTED
-   ) {
-                // TODO: Consider calling
-                // ActivityCompat#requestPermissions
-                // here to request the missing permissions, and then overriding
-                // public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                //                                        int[] grantResults)
-                // to handle the case where the user grants the permission. See the documentation
-                // for ActivityCompat#requestPermissions for more details.
-            ActivityCompat.requestPermissions(
-                    this,
-                    new String[]{Manifest.permission.POST_NOTIFICATIONS},
-                    NOTIFICATION_PERMISSION_REQUEST_CODE
-            );
-
-                return;
-            }
-            // notificationId is a unique int for each notification that you must define.
-            notificationManager.notify(NOTIFICATION_ID, builder.build());
-
-
-    }
-
+//    private void openNotifications() {
+//        // open notifications screen?
+//        Toast.makeText(this, "Notifications Clicked", Toast.LENGTH_SHORT).show();
+//    }
 }
