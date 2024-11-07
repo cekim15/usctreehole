@@ -74,7 +74,9 @@ public class EditProfile extends AppCompatActivity {
         setUpToolbar();
 
         ImageView notifications = findViewById(R.id.notification_bell);
-        notifications.setOnClickListener(v -> openNotifications());
+        notifications.setOnClickListener(v -> {
+            dl.openDrawer(GravityCompat.END);
+        });
 
         Intent oldInfo = getIntent();
         populateWithOld(oldInfo);
@@ -269,23 +271,6 @@ public class EditProfile extends AppCompatActivity {
         }
     }
 
-    /*private byte[] resizeImage() {
-        InputStream inputStream = null;
-        try {
-            inputStream = getContentResolver().openInputStream(profilepicuri);
-        } catch (FileNotFoundException e) {
-            Log.e(TAG, "file not found exception " + e.getMessage());
-        }
-        Bitmap og_bitmap = BitmapFactory.decodeStream(inputStream);
-        int target_width = 300;
-        int target_height = (og_bitmap.getHeight() * target_width) / og_bitmap.getWidth();
-        Bitmap resized = Bitmap.createScaledBitmap(og_bitmap, target_width, target_height, true);
-
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        resized.compress(Bitmap.CompressFormat.JPEG, 80, baos);
-        return baos.toByteArray();
-    } */
-
     private void setUpToolbar() {
         Toolbar toolbar = findViewById(R.id.my_toolbar);
         setSupportActionBar(toolbar);
@@ -315,11 +300,6 @@ public class EditProfile extends AppCompatActivity {
             dl.closeDrawer(GravityCompat.START);
             return true;
         });
-    }
-
-    private void openNotifications() {
-        // open notifications screen?
-        Toast.makeText(this, "Notifications Clicked", Toast.LENGTH_SHORT).show();
     }
 
 }
