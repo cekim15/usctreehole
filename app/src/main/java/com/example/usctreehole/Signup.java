@@ -121,6 +121,7 @@ public class Signup extends AppCompatActivity {
                                 }))
                                 .addOnFailureListener(this::deleteUserAndHandleError);
                     } else {
+                        Toast.makeText(Signup.this, "Account already exists", Toast.LENGTH_SHORT).show();
                         Log.d(TAG, "User creation failed");
                     }
                 });

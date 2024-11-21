@@ -63,12 +63,8 @@ public class CreatePost extends AppCompatActivity {
         setContentView(R.layout.activity_create_post);
         setUpToolbar();
 
-//        ImageView notifications = findViewById(R.id.notification_bell);
-//        notifications.setOnClickListener(v -> openNotifications());
-
         ImageView notifications = findViewById(R.id.notification_bell);
         notifications.setOnClickListener(v -> {
-            // Open right-side menu (notification drawer)
             dl.openDrawer(GravityCompat.END);
         });
 
@@ -177,9 +173,4 @@ public class CreatePost extends AppCompatActivity {
             return true;
         });
     }
-
-//    private void openNotifications() {
-//        // open notifications screen?
-//        Toast.makeText(this, "Notifications Clicked", Toast.LENGTH_SHORT).show();
-//    }
 }

@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "com.example.usctreehole"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.example.usctreehole"
@@ -44,12 +44,16 @@ dependencies {
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.storage)
     implementation(libs.glide)
+    implementation(libs.appcompat)
+    implementation(libs.recyclerview)
+    implementation(libs.material)
+    implementation(libs.core.ktx)
     annotationProcessor(libs.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
-    implementation(libs.appcompat)
-    implementation(libs.recyclerview)
-    implementation(libs.material)
-    implementation("androidx.core:core-ktx:1.12.0")
+    androidTestImplementation(libs.espresso.intents)
+    androidTestImplementation(libs.espresso.contrib)
+    androidTestImplementation(libs.runner)
+    androidTestImplementation(libs.rules)
 }

@@ -63,9 +63,6 @@ public class MainActivity extends AppCompatActivity {
         setUpTabs();
         Log.d(TAG, "On create viewing is: " + viewing);
 
-//        ImageView notifications = findViewById(R.id.notification_bell);
-//        notifications.setOnClickListener(v -> openNotifications());
-
         ImageView notifications = findViewById(R.id.notification_bell);
         notifications.setOnClickListener(v -> {
             // Open right-side menu (notification drawer)
