@@ -43,6 +43,14 @@ public class MainActivity extends AppCompatActivity {
     boolean academicPosts = false;
     List<Post> notificationPosts = new ArrayList<Post>();
 
+    public FirebaseAuth getAuth() {
+        return mAuth;
+    }
+
+    public FirebaseFirestore getdb() {
+        return db;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
