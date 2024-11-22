@@ -122,7 +122,7 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
-    private void getViewing() {
+    protected void getViewing() {
         Log.d(TAG, "Called selected category");
         viewing = "lifePosts";
         Intent coming_from = getIntent();

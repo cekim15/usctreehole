@@ -53,7 +53,7 @@ public class MainActivityTest {
         mainActivity.getViewing();
 
         // Verify the viewing logic
-        assertEquals("eventPosts", mainActivity.viewing);
+        assertEquals("eventPosts", mainActivity.getViewing());
     }
 
     @Test
