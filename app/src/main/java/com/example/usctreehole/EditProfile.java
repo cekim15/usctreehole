@@ -208,7 +208,7 @@ public class EditProfile extends AppCompatActivity {
         }
     }
 
-    private void getChangedFields(Map<String, Object> changedFields) {
+    void getChangedFields(Map<String, Object> changedFields) {
         String editedName = ((EditText) findViewById(R.id.enterName)).getText().toString();
         String editedID = ((EditText) findViewById(R.id.enterID)).getText().toString();
         Spinner roleSelect = findViewById(R.id.roleSelect);
