@@ -1,7 +1,10 @@
 [versions]
 agp = "8.5.2"
 compiler = "4.16.0"
+conscryptAndroid = "2.5.1"
+core = "1.6.1"
 coreKtx = "1.15.0"
+coreVersion = "1.6.0"
 espressoContrib = "3.6.1"
 firebaseBom = "33.6.0"
 glide = "4.16.0"
@@ -16,15 +19,22 @@ googleGmsGoogleServices = "4.4.2"
 firebaseDatabase = "21.0.0"
 firebaseFirestore = "25.1.1"
 firebaseStorage = "21.0.1"
+mockitoCore = "4.5.1"
+mockitoInline = "4.5.1"
 protobufJavalite = "3.25.1"
 recyclerview = "1.3.2"
+robolectric = "4.10"
 rules = "1.6.1"
 runner = "1.6.2"
 espressoIntents = "3.6.1"
+shadowsFramework = "4.10"
 
 [libraries]
 compiler = { module = "com.github.bumptech.glide:compiler", version.ref = "compiler" }
+conscrypt-android = { module = "org.conscrypt:conscrypt-android", version.ref = "conscryptAndroid" }
+core = { module = "androidx.test:core", version.ref = "core" }
 core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
+core-v160 = { module = "androidx.test:core", version.ref = "coreVersion" }
 espresso-contrib = { module = "androidx.test.espresso:espresso-contrib", version.ref = "espressoContrib" }
 firebase-auth = { module = "com.google.firebase:firebase-auth" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
@@ -39,11 +49,15 @@ constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayo
 firebase-database = { group = "com.google.firebase", name = "firebase-database", version.ref = "firebaseDatabase" }
 firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore", version.ref = "firebaseFirestore" }
 firebase-storage = { group = "com.google.firebase", name = "firebase-storage", version.ref = "firebaseStorage" }
+mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockitoCore" }
+mockito-inline = { module = "org.mockito:mockito-inline", version.ref = "mockitoInline" }
 protobuf-javalite = { module = "com.google.protobuf:protobuf-javalite", version.ref = "protobufJavalite" }
 recyclerview = { module = "androidx.recyclerview:recyclerview", version.ref = "recyclerview" }
+robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 rules = { module = "androidx.test:rules", version.ref = "rules" }
 runner = { module = "androidx.test:runner", version.ref = "runner" }
 espresso-intents = { group = "androidx.test.espresso", name = "espresso-intents", version.ref = "espressoIntents" }
+shadows-framework = { module = "org.robolectric:shadows-framework", version.ref = "shadowsFramework" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

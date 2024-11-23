@@ -23,14 +23,15 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 public class Login extends AppCompatActivity {
-    private FirebaseAuth mAuth;
     private static final String TAG = "LoginActivity";
     private DrawerLayout dl;
+    private AuthManager authManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mAuth = FirebaseAuth.getInstance();
+        authManager = new AuthManager(FirebaseAuth.getInstance());
+        //mAuth = FirebaseAuth.getInstance();
         setContentView(R.layout.activity_login);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.my_toolbar);
@@ -56,38 +57,33 @@ public class Login extends AppCompatActivity {
         });
 
         View loginButton = findViewById(R.id.loginButton);
-        loginButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                String email = ((EditText) findViewById(R.id.enterEmail)).getText().toString();
-                String password = ((EditText) findViewById(R.id.enterPassword)).getText().toString();
+        loginButton.setOnClickListener(view -> {
+            String email = ((EditText) findViewById(R.id.enterEmail)).getText().toString();
+            String password = ((EditText) findViewById(R.id.enterPassword)).getText().toString();
 
-                mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(Login.this, new OnCompleteListener<AuthResult>() {
-
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in user's information
-                            Log.d(TAG, "signInWithEmail:success");
-                            FirebaseUser user = mAuth.getCurrentUser();
-                            reload(user);
-                        } else {
-                            // If sign in fails, display a message to the user.
-                            Log.w(TAG, "signInWithEmail:failure", task.getException());
-                            Toast.makeText(Login.this, "Incorrect username or password.",
-                                    Toast.LENGTH_SHORT).show();
-                            reload(null);
-                        }
-                    }
-                });
-            }
+            authManager.signIn(email, password).addOnCompleteListener(Login.this, task -> {
+                if (task.isSuccessful()) {
+                    Log.d(TAG, "signInWithEmail:success");
+                    FirebaseUser user = authManager.getCurrentUser();
+                    reload(user);
+                } else {
+                    Log.w(TAG, "signInWithEmail:failure", task.getException());
+                    Toast.makeText(Login.this, "Incorrect username or password.",
+                            Toast.LENGTH_SHORT).show();
+                    reload(null);
+                }
+            });
         });
+    }
+
+    public void setAuthManager(AuthManager authManager) {
+        this.authManager = authManager;
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        FirebaseUser currentUser = mAuth.getCurrentUser();
+        FirebaseUser currentUser = authManager.getCurrentUser();
         if (currentUser != null) {
             reload(currentUser);
         }
@@ -95,8 +91,7 @@ public class Login extends AppCompatActivity {
 
     private void reload(FirebaseUser user) {
         if (user != null) {
-            Intent intent = new Intent (Login.this, MainActivity.class);
-            startActivity(intent);
+            startActivity(new Intent(Login.this, MainActivity.class));
             finish();
         }
     }
