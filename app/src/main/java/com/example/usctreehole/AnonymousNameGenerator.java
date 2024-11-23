@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Random;
 
 public class AnonymousNameGenerator {
-    private static final String[] ALL_NAMES = {
+    protected static final String[] ALL_NAMES = {
             "Anonymous Pumpkin", "Anonymous Vampire", "Anonymous Werewolf", "Anonymous Frankenstein", "Anonymous Zombie",
             "Anonymous Star", "Anonymous Rabbit", "Anonymous Cat", "Anonymous Ocean", "Anonymous Mountain",
             "Anonymous Mermaid", "Anonymous Knight", "Anonymous Wizard", "Anonymous Dragon", "Anonymous Unicorn",
@@ -15,8 +15,8 @@ public class AnonymousNameGenerator {
             "Anonymous Mochi", "Anonymous Milk Tea", "Anonymous Ice Cream", "Anonymous Cake", "Anonymous Chocolate"
     };
 
-    private List<String> names;
-    private Random random;
+    protected List<String> names;
+    protected Random random;
 
     public AnonymousNameGenerator() {
         random = new Random();

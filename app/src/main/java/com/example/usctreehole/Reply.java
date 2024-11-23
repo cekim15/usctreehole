@@ -30,7 +30,6 @@ public class Reply {
         this.anonymous_name = anonymous_name;
         this.nested_reply = nested_reply;
         this.parent_reply_id = parent_reply_id;
-        Log.d("Reply", String.valueOf(this.nested_reply));
     }
 
     public String getUid() { return this.uid; }

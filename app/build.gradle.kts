@@ -55,6 +55,8 @@ dependencies {
     testImplementation(libs.robolectric)
     testImplementation(libs.shadows.framework)
     testImplementation(libs.core)
+    testImplementation(libs.powermock.api.mockito2)
+    testImplementation(libs.powermock.module.junit4)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
     androidTestImplementation(libs.espresso.intents)
