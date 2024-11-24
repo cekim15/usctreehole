@@ -23,7 +23,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 public class Login extends AppCompatActivity {
-    private FirebaseAuth mAuth;
+    FirebaseAuth mAuth;
     private static final String TAG = "LoginActivity";
     private DrawerLayout dl;
 
@@ -93,7 +93,7 @@ public class Login extends AppCompatActivity {
         }
     }
 
-    private void reload(FirebaseUser user) {
+    void reload(FirebaseUser user) {
         if (user != null) {
             Intent intent = new Intent (Login.this, MainActivity.class);
             startActivity(intent);

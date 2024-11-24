@@ -57,7 +57,9 @@ dependencies {
     }
     androidTestImplementation(libs.runner)
     androidTestImplementation(libs.rules)
+    androidTestImplementation ("androidx.test:core:1.6.1")
     testImplementation("org.mockito:mockito-core:4.11.0") // Update version as needed
     testImplementation("org.mockito:mockito-inline:4.11.0") // For mocking final classes
     testImplementation("junit:junit:4.13.2") // Ensure JUnit is also included
+    testImplementation ("androidx.test:core:1.6.1")
 }
