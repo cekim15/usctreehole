@@ -47,6 +47,11 @@ dependencies {
     implementation(libs.recyclerview)
     implementation(libs.core.ktx)
     implementation(libs.protobuf.javalite)
+
+    implementation ("androidx.constraintlayout:constraintlayout:2.1.4")
+
+    implementation ("androidx.appcompat:appcompat:1.6.1")
+
     annotationProcessor(libs.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
@@ -62,4 +67,7 @@ dependencies {
     testImplementation("org.mockito:mockito-inline:4.11.0") // For mocking final classes
     testImplementation("junit:junit:4.13.2") // Ensure JUnit is also included
     testImplementation ("androidx.test:core:1.6.1")
+    testImplementation ("org.mockito:mockito-core:5.5.0")
+
+    testImplementation ("org.robolectric:robolectric:4.10.3")
 }
