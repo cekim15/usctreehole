@@ -23,10 +23,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 public class Login extends AppCompatActivity {
-<<<<<<< HEAD
     FirebaseAuth mAuth;
-=======
->>>>>>> main
     private static final String TAG = "LoginActivity";
     private DrawerLayout dl;
     private AuthManager authManager;

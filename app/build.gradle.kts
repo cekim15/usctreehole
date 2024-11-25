@@ -47,15 +47,11 @@ dependencies {
     implementation(libs.recyclerview)
     implementation(libs.core.ktx)
     implementation(libs.protobuf.javalite)
-<<<<<<< HEAD
 
     implementation ("androidx.constraintlayout:constraintlayout:2.1.4")
 
     implementation ("androidx.appcompat:appcompat:1.6.1")
-
-=======
     implementation(libs.conscrypt.android)
->>>>>>> main
     annotationProcessor(libs.compiler)
     testImplementation(libs.junit)
     testImplementation(libs.mockito.core)
