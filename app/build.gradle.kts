@@ -47,13 +47,24 @@ dependencies {
     implementation(libs.recyclerview)
     implementation(libs.core.ktx)
     implementation(libs.protobuf.javalite)
+<<<<<<< HEAD
 
     implementation ("androidx.constraintlayout:constraintlayout:2.1.4")
 
     implementation ("androidx.appcompat:appcompat:1.6.1")
 
+=======
+    implementation(libs.conscrypt.android)
+>>>>>>> main
     annotationProcessor(libs.compiler)
     testImplementation(libs.junit)
+    testImplementation(libs.mockito.core)
+    testImplementation(libs.mockito.inline)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.shadows.framework)
+    testImplementation(libs.core)
+    testImplementation(libs.powermock.api.mockito2)
+    testImplementation(libs.powermock.module.junit4)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
     androidTestImplementation(libs.espresso.intents)
