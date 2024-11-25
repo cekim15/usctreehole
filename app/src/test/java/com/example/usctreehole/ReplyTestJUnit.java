@@ -70,4 +70,37 @@ public class ReplyTestJUnit {
         reply.setAnonymous_name("AnonymousUser2");
         assertEquals("AnonymousUser2", reply.getAnonymous_name());
     }
+
+    @Test
+    public void testGetTimestampAsDateNull() {
+        // Create a reply object with a null timestamp
+        Reply replyWithNullTimestamp = new Reply("user123", "Test reply", null, true, "AnonymousUser", true, "parent123");
+
+        // Get the timestamp as Date
+        Date timestampAsDate = replyWithNullTimestamp.getTimestampAsDate();
+
+        // Assert that the timestampAsDate is null
+        assertNull(timestampAsDate);
+    }
+
+    @Test
+    public void testAnonymousNameWhenNotAnonymous() {
+        // Set 'anonymous' to false, but set 'anonymous_name' to a value
+        reply.setAnonymous(false);
+        reply.setAnonymous_name("John Doe");
+
+        // Check that 'anonymous_name' is still set correctly
+        assertEquals("John Doe", reply.getAnonymous_name());
+    }
+
+    @Test
+    public void testSetNestedReply() {
+        // Set nested_reply to true and check isNested()
+        reply.setNested(true);
+        assertTrue(reply.isNested());
+
+        // Set nested_reply to false and check isNested()
+        reply.setNested(false);
+        assertFalse(reply.isNested());
+    }
 }

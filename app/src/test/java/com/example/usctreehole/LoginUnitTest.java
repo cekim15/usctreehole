@@ -15,6 +15,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import static org.junit.Assert.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -54,6 +55,32 @@ public class LoginUnitTest {
 
         // Verify method calls
         verify(mockAuth).signInWithEmailAndPassword("test@example.com", "password");
+        verify(mockTask).addOnCompleteListener(any(OnCompleteListener.class));
+    }
+
+    @Test
+    public void testUnsuccessfulLogin() {
+        // Mock unsuccessful login
+        Task<AuthResult> mockTask = mock(Task.class);
+        when(mockTask.isSuccessful()).thenReturn(false); // Simulate unsuccessful task
+        when(mockAuth.signInWithEmailAndPassword(anyString(), anyString())).thenReturn(mockTask);
+
+        // Simulate unsuccessful login behavior
+        doAnswer(invocation -> {
+            OnCompleteListener<AuthResult> listener = invocation.getArgument(0);
+            listener.onComplete(mockTask);
+            return null;
+        }).when(mockTask).addOnCompleteListener(any(OnCompleteListener.class));
+
+        // Test logic
+        loginActivity.mAuth.signInWithEmailAndPassword("test@example.com", "wrongpassword")
+                .addOnCompleteListener(task -> {
+                    // Assert that the task was unsuccessful
+                    assertFalse(task.isSuccessful());
+                });
+
+        // Verify method calls
+        verify(mockAuth).signInWithEmailAndPassword("test@example.com", "wrongpassword");
         verify(mockTask).addOnCompleteListener(any(OnCompleteListener.class));
     }
 }

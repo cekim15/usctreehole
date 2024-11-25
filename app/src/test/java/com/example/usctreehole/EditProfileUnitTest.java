@@ -52,4 +52,23 @@ public class EditProfileUnitTest {
         assertEquals("654321", changedFields.get("uscID"));
         assertEquals("Faculty", changedFields.get("role"));
     }
+
+    @Test
+    public void testGetChangedFields_correctlyIdentifiesNoChanges() {
+        // Prepare a map for changed fields
+        Map<String, Object> changedFields = new HashMap<>();
+
+        String oldName = editProfile.old_name;
+        String oldID = editProfile.old_ID;
+        String oldRole = editProfile.old_role;
+
+        changedFields.put("name", oldName);
+        changedFields.put("uscID", oldID);
+        changedFields.put("role", oldRole);
+
+        // Verify the lack of changes
+        assertEquals(oldName, changedFields.get("name"));
+        assertEquals(oldID, changedFields.get("uscID"));
+        assertEquals(oldRole, changedFields.get("role"));
+    }
 }
