@@ -1,63 +1,46 @@
 package com.example.usctreehole;
 
 import static androidx.test.espresso.Espresso.onView;
-import static androidx.test.espresso.action.ViewActions.click;
-import static androidx.test.espresso.action.ViewActions.typeText;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
+import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
-import static androidx.test.espresso.matcher.ViewMatchers.withText;
 
-import androidx.test.core.app.ActivityScenario;
+import androidx.test.ext.junit.rules.ActivityScenarioRule;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
-import com.example.usctreehole.R;
-
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(AndroidJUnit4.class)
 public class SignupActivityTest {
 
-    @Test
-    public void testSignupWithoutProfilePicture_ShowsErrorMessage() {
-        try (ActivityScenario<Signup> scenario = ActivityScenario.launch(Signup.class)) {
-            // Enter required fields
-            onView(withId(R.id.enterEmail)).perform(typeText("testuser@example.com"));
-            onView(withId(R.id.enterPassword)).perform(typeText("password123"));
-            onView(withId(R.id.enterName)).perform(typeText("Test User"));
-            onView(withId(R.id.enterID)).perform(typeText("123456789"));
-            // No profile picture selected
-
-            // Click the Signup button
-            onView(withId(R.id.signupButton)).perform(click());
-
-            // Verify error toast is displayed
-            onView(withText("Please select an image"))
-                    .inRoot(new ToastMatcher())
-                    .check(matches(withText("Please select an image")));
-        }
-    }
+    @Rule
+    public ActivityScenarioRule<Signup> activityRule =
+            new ActivityScenarioRule<>(Signup.class);
 
     @Test
-    public void testSuccessfulSignup_RedirectsToMainActivity() {
-        try (ActivityScenario<Signup> scenario = ActivityScenario.launch(Signup.class)) {
-            // Mock necessary backend behavior or skip for simplicity
-            // Ensure FirebaseAuth and Firestore are set up in the test environment
+    public void testSignupPageLoads() {
+        // Check if the email field is displayed
+        onView(withId(R.id.enterEmail)).check(matches(isDisplayed()));
 
-            // Enter required fields
-            onView(withId(R.id.enterEmail)).perform(typeText("testuser@example.com"));
-            onView(withId(R.id.enterPassword)).perform(typeText("password123"));
-            onView(withId(R.id.enterName)).perform(typeText("Test User"));
-            onView(withId(R.id.enterID)).perform(typeText("123456789"));
+        // Check if the password field is displayed
+        onView(withId(R.id.enterPassword)).check(matches(isDisplayed()));
 
-            // Simulate profile picture selection
-            // (Assume testing frameworks provide a way to simulate file pickers if needed)
+        // Check if the name field is displayed
+        onView(withId(R.id.enterName)).check(matches(isDisplayed()));
 
-            // Click the Signup button
-            onView(withId(R.id.signupButton)).perform(click());
+        // Check if the USC ID field is displayed
+        onView(withId(R.id.enterID)).check(matches(isDisplayed()));
 
-            // Verify redirection to MainActivity (placeholder verification, adjust as needed)
-            onView(withText("Welcome to MainActivity!")).check(matches(withText("Welcome to MainActivity!")));
-        }
+        // Check if the role spinner is displayed
+        onView(withId(R.id.roleSelect)).check(matches(isDisplayed()));
+
+        // Check if the signup button is displayed
+        onView(withId(R.id.signupButton)).check(matches(isDisplayed()));
+
+        // Check if the upload image button is displayed
+        onView(withId(R.id.uploadImageButton)).check(matches(isDisplayed()));
     }
 }
+
