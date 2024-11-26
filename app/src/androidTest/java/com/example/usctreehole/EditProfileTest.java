@@ -1,16 +1,15 @@
 package com.example.usctreehole;
 
+import java.util.Random;
+
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.clearText;
 import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.action.ViewActions.closeSoftKeyboard;
-import static androidx.test.espresso.action.ViewActions.replaceText;
 import static androidx.test.espresso.action.ViewActions.typeText;
-import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withContentDescription;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
-import static androidx.test.espresso.matcher.ViewMatchers.withParent;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static org.hamcrest.Matchers.allOf;
 
@@ -22,12 +21,10 @@ import androidx.test.core.app.ActivityScenario;
 import androidx.test.espresso.ViewInteraction;
 import androidx.test.ext.junit.rules.ActivityScenarioRule;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
-import androidx.test.filters.LargeTest;
 
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -134,20 +131,14 @@ public class EditProfileTest {
                 allOf(withId(R.id.enterName),
                         isDisplayed()));
         appCompatEditText.perform(click());
-        appCompatEditText.perform(clearText(), typeText("James"), closeSoftKeyboard());
+        appCompatEditText.perform(clearText(), typeText(randomName()), closeSoftKeyboard());
 
 //        Edit ID
         appCompatEditText = onView(
                 allOf(withId(R.id.enterID),
                         isDisplayed()));
         appCompatEditText.perform(click());
-        appCompatEditText.perform(clearText(), typeText("1123"), closeSoftKeyboard());
-
-//        try {
-//            Thread.sleep(3000);
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
+        appCompatEditText.perform(clearText(), typeText(randomID()), closeSoftKeyboard());
 
 //       edit role
         ViewInteraction appCompatSpinner = onView(
@@ -162,8 +153,6 @@ public class EditProfileTest {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
-
 
 //        edit profile picture
 //        imageViewProfilePic
@@ -228,20 +217,14 @@ public class EditProfileTest {
                 allOf(withId(R.id.enterName),
                         isDisplayed()));
         appCompatEditText.perform(click());
-        appCompatEditText.perform(clearText(), typeText("James"), closeSoftKeyboard());
+        appCompatEditText.perform(clearText(), typeText(randomName()), closeSoftKeyboard());
 
 //        Edit ID
         appCompatEditText = onView(
                 allOf(withId(R.id.enterID),
                         isDisplayed()));
         appCompatEditText.perform(click());
-        appCompatEditText.perform(clearText(), typeText("1123"), closeSoftKeyboard());
-
-//        try {
-//            Thread.sleep(3000);
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
+        appCompatEditText.perform(clearText(), typeText(randomID()), closeSoftKeyboard());
 
 //       edit role
         ViewInteraction appCompatSpinner = onView(
@@ -270,7 +253,7 @@ public class EditProfileTest {
 
 //        save edits
         appCompatButton = onView(
-                allOf(withId(R.id.cancel_profile_edit),
+                allOf(withId(R.id.save_profile_edit),
                         isDisplayed()));
         appCompatButton.perform(click());
 
@@ -299,5 +282,18 @@ public class EditProfileTest {
                         && view.equals(((ViewGroup) parent).getChildAt(position));
             }
         };
+    }
+
+    private String randomID(){
+        Random random = new Random();
+        return "" + Math.abs(random.nextInt());
+    }
+
+    private String randomName(){
+        Random random = new Random();
+        String[] arr = {"Olivia", "Liam", "Emma", "Noah", "Ava", "Oliver", "Isabella",
+                "Elijah", "Sophia", "James", "Amelia", "Benjamin", "Charlotte",
+                "Lucas", "Mia", "Mason", "Harper", "Logan", "Ella", "Jackson"};
+        return arr[Math.abs(random.nextInt() % 20)];
     }
 }
