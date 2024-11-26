@@ -27,11 +27,15 @@ public class Profile extends AppCompatActivity {
     private static final String TAG = "Profile";
     private DrawerLayout dl;
     private FirebaseAuth mAuth;
-    private FirebaseFirestore db;
-    private ImageView profileImageView;
-    private TextView nameTextView, uscIdTextView, roleTextView;
-    private SwitchCompat lifeNotifications, academicNotifications, eventNotifications;
-    private Intent editIntent;
+    FirebaseFirestore db;
+    ImageView profileImageView;
+    TextView nameTextView;
+    TextView uscIdTextView;
+    TextView roleTextView;
+    SwitchCompat lifeNotifications;
+    SwitchCompat academicNotifications;
+    SwitchCompat eventNotifications;
+    Intent editIntent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -117,7 +121,7 @@ public class Profile extends AppCompatActivity {
         });
     }
 
-    private void loadUserInfo(String uid) {
+    void loadUserInfo(String uid) {
         Log.d(TAG, "loading user info");
         db.collection("users").document(uid).get()
                 .addOnSuccessListener(documentSnapshot -> {
@@ -176,7 +180,7 @@ public class Profile extends AppCompatActivity {
                 });
     }
 
-    private void manageNotificationSettings(String uid) {
+    void manageNotificationSettings(String uid) {
         lifeNotifications.setOnCheckedChangeListener((buttonView, on) -> db.collection("users").document(uid)
                 .update("lifeSubscription", on)
                 .addOnSuccessListener(aVoid -> Log.d(TAG, "Life notifications updated successfully"))

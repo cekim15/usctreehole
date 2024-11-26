@@ -47,6 +47,10 @@ dependencies {
     implementation(libs.recyclerview)
     implementation(libs.core.ktx)
     implementation(libs.protobuf.javalite)
+
+    implementation ("androidx.constraintlayout:constraintlayout:2.1.4")
+
+    implementation ("androidx.appcompat:appcompat:1.6.1")
     implementation(libs.conscrypt.android)
     annotationProcessor(libs.compiler)
     testImplementation(libs.junit)
@@ -65,4 +69,23 @@ dependencies {
     }
     androidTestImplementation(libs.runner)
     androidTestImplementation(libs.rules)
+    androidTestImplementation ("androidx.test:core:1.6.1")
+    androidTestImplementation ("org.mockito:mockito-android:5.6.0")
+    androidTestImplementation ("androidx.test:runner:1.5.2")
+    androidTestImplementation ("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation ("androidx.test.espresso:espresso-core:3.5.1")
+
+
+    testImplementation("org.mockito:mockito-core:4.11.0") // Update version as needed
+    testImplementation("org.mockito:mockito-inline:4.11.0") // For mocking final classes
+    testImplementation("junit:junit:4.13.2") // Ensure JUnit is also included
+    testImplementation ("androidx.test:core:1.6.1")
+    testImplementation ("org.mockito:mockito-core:5.5.0")
+
+    testImplementation ("org.robolectric:robolectric:4.10.3")
+    testImplementation ("org.mockito:mockito-core:5.6.0")
+
+    testImplementation ("org.powermock:powermock-module-junit4:2.0.9")
+    testImplementation ("org.powermock:powermock-api-mockito2:2.0.9")
+    //implementation(kotlin("script-runtime"))
 }

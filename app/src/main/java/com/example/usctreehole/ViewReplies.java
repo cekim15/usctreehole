@@ -261,7 +261,7 @@ public class ViewReplies extends AppCompatActivity implements ReplyAdapter.Reply
                 });
     }
 
-    private void handleRepliedBefore(boolean anonymous_previously) {
+    void handleRepliedBefore(boolean anonymous_previously) {
         TextView anonymous_reply_label = findViewById(R.id.anonymous_reply_label);
         if (anonymous_previously) {
             anonymous_toggle.setChecked(true);

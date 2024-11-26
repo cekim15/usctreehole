@@ -39,7 +39,7 @@ public class EditProfile extends AppCompatActivity {
 
     private StorageReference storageRef;
     private ImageView profileImageView;
-    private Uri profilepicuri;
+    Uri profilepicuri;
 
     String old_name, old_ID, old_role, old_profileUrl;
     boolean changed_pic;
@@ -208,7 +208,7 @@ public class EditProfile extends AppCompatActivity {
         }
     }
 
-    private void getChangedFields(Map<String, Object> changedFields) {
+    void getChangedFields(Map<String, Object> changedFields) {
         String editedName = ((EditText) findViewById(R.id.enterName)).getText().toString();
         String editedID = ((EditText) findViewById(R.id.enterID)).getText().toString();
         Spinner roleSelect = findViewById(R.id.roleSelect);
