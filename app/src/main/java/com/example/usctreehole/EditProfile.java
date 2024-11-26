@@ -39,7 +39,7 @@ public class EditProfile extends AppCompatActivity {
 
     private StorageReference storageRef;
     private ImageView profileImageView;
-    private Uri profilepicuri;
+    Uri profilepicuri;
 
     String old_name, old_ID, old_role, old_profileUrl;
     boolean changed_pic;

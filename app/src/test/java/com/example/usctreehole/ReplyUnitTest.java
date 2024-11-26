@@ -117,4 +117,48 @@ public class ReplyUnitTest {
         Date expectedDate = timestamp.toDate();
         assertEquals(expectedDate, reply.getTimestampAsDate());
     }
+
+    @Test
+    public void testTimestampAsDateNull() {
+        // Create a reply object with a null timestamp
+        reply = new Reply(
+                "testUid",
+                "This is a test reply",
+                null, // Null timestamp
+                true,
+                "AnonymousUser",
+                true,
+                "parentReplyId123"
+        );
+
+        // Get the timestamp as Date
+        Date timestampAsDate = reply.getTimestampAsDate();
+
+        // Assert that the timestampAsDate is null, since the timestamp is null
+        assertNull(timestampAsDate);
+    }
+
+    @Test
+    public void testAnonymousNameWhenAnonymous() {
+        // Create a reply object with the anonymous flag set to true and anonymous_name set to null
+        reply = new Reply(
+                "testUid",
+                "This is a test reply",
+                Timestamp.now(),
+                true, // anonymous flag set to true
+                null, // anonymous_name is null
+                true,
+                "parentReplyId123"
+        );
+
+        // Get the anonymous name
+        String anonymousName = reply.getAnonymous_name();
+
+        // Assert that the anonymous name should be null or empty when the reply is anonymous
+        assertNull(anonymousName); // If you want the anonymous name to be null
+        // assertTrue(anonymousName.isEmpty()); // Alternatively, if you want it to be an empty string
+    }
+
+
+
 }
