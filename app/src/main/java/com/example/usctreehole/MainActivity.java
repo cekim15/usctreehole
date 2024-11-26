@@ -28,15 +28,15 @@ import java.sql.Array;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+public abstract class MainActivity extends AppCompatActivity {
     private DrawerLayout dl;
     private FirebaseAuth mAuth;
-    private FirebaseFirestore db;
+    FirebaseFirestore db;
     private RecyclerView rv;
     private PostAdapter postAdapter;
     private List<Post> posts = new ArrayList<>();
     private static final String TAG = "MainActivity";
-    private String viewing;
+    String viewing;
     private TabLayout categoryTabs;
     boolean lifePosts = false;
     boolean eventPosts = false;
@@ -91,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void fetchPosts() {
+    void fetchPosts() {
         if (viewing != null) {
             Log.d(TAG, "fetching posts in " + viewing);
         }
@@ -357,4 +357,5 @@ public class MainActivity extends AppCompatActivity {
         notificationPosts.addAll(posts);
     }
 
+    public abstract void Log(String tag, String message);
 }
