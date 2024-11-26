@@ -28,7 +28,7 @@ import java.sql.Array;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity {
     private DrawerLayout dl;
     private FirebaseAuth mAuth;
     FirebaseFirestore db;
@@ -91,7 +91,7 @@ public abstract class MainActivity extends AppCompatActivity {
         });
     }
 
-    void fetchPosts() {
+    public void fetchPosts() {
         if (viewing != null) {
             Log.d(TAG, "fetching posts in " + viewing);
         }
@@ -357,5 +357,8 @@ public abstract class MainActivity extends AppCompatActivity {
         notificationPosts.addAll(posts);
     }
 
-    public abstract void Log(String tag, String message);
+    public void Log(String tag, String message) {
+//        does not do anything since it is overridden
+        return;
+    }
 }
