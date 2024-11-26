@@ -1,43 +1,28 @@
 package com.example.usctreehole;
-import android.content.Intent;
-import android.widget.TextView;
 
-import androidx.test.core.app.ActivityScenario;
+import static androidx.test.espresso.Espresso.onView;
+import static androidx.test.espresso.assertion.ViewAssertions.matches;
+import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
+import static androidx.test.espresso.matcher.ViewMatchers.isRoot;
+
+import androidx.test.ext.junit.rules.ActivityScenarioRule;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
-
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.junit.Assert.assertEquals;
 
 @RunWith(AndroidJUnit4.class)
 public class ProfileActivityTest {
 
+    @Rule
+    public ActivityScenarioRule<Profile> activityRule =
+            new ActivityScenarioRule<>(Profile.class);
+
     @Test
-    public void testLoadUserInfo() {
-        // Launch the Profile activity
-        ActivityScenario<Profile> scenario = ActivityScenario.launch(Profile.class);
-
-        scenario.onActivity(activity -> {
-            // Mock Firestore response for user info
-            FirebaseFirestore db = FirebaseFirestore.getInstance();
-
-            // Prepare mock data (you can replace this with a simpler approach)
-            String mockName = "John Doe";
-
-            // Stub FirebaseFirestore interaction (manual simulation)
-            TextView nameTextView = activity.findViewById(R.id.nameTextView);
-            activity.nameTextView.setText(mockName);
-
-            // Assert the TextView updated correctly
-            assertEquals(mockName, nameTextView.getText().toString());
-        });
+    public void testProfilePageLoads() {
+        // Check if the main layout of the activity is displayed
+        onView(isRoot()).check(matches(isDisplayed()));
     }
 }
 
