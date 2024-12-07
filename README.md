@@ -9,3 +9,10 @@ Once logged in, the navigation bar will change to display Home, Profile, and Log
 The profile tab will show the name, USC ID, profile picture, and role that you registered with. In this tab, you can edit your profile information as well as change your subscription settings.
 
 From the Home tab, by clicking the bell in the upper right hand corner, you can see notifications for categories you have subscribed to.
+
+FOR 2.5:
+
+Improvements since 2.4:
+- There are now notifications for replies.
+- Notifications can display on pages that are not just the main post page
+- Notifications will display from most recent - oldest regardless of which category they are in.
