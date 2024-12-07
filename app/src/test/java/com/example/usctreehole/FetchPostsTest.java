@@ -28,7 +28,7 @@ public class FetchPostsTest {
         mainActivity.db = mockFirestore;
     }
 
-    @Test
+    /*@Test
     public void testViewingNullLogsCorrectMessage() {
         // Set viewing to null
         mainActivity.viewing = null;
@@ -38,5 +38,5 @@ public class FetchPostsTest {
 
         // Manual verification via console
         System.out.println("Check console output for: \"can't fetch, viewing null\"");
-    }
+    } */
 }

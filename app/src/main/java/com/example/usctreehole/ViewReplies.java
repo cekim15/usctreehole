@@ -49,19 +49,17 @@ public class ViewReplies extends AppCompatActivity implements ReplyAdapter.Reply
     private String uid;
     private String anonymous_name;
     private AnonymousNameGenerator name_generator;
+    private String post_title;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view_replies);
         setUpToolbar();
-//
-//        ImageView notifications = findViewById(R.id.notification_bell);
-//        notifications.setOnClickListener(v -> openNotifications());
 
         ImageView notifications = findViewById(R.id.notification_bell);
         notifications.setOnClickListener(v -> {
-            // Open right-side menu (notification drawer)
+            fetchNotifications();
             dl.openDrawer(GravityCompat.END);
         });
 
@@ -76,6 +74,7 @@ public class ViewReplies extends AppCompatActivity implements ReplyAdapter.Reply
         content = findViewById(R.id.post_content);
         timestamp = findViewById(R.id.post_timestamp);
         rtr = false;
+        post_title = "";
 
         Log.d(TAG, collection);
         displayPost();
@@ -199,6 +198,8 @@ public class ViewReplies extends AppCompatActivity implements ReplyAdapter.Reply
                                     Toast.makeText(this, "Reply posted successfully", Toast.LENGTH_SHORT).show();
                                     ((EditText) findViewById(R.id.reply_edit_text)).setText("");
                                     fetchReplies();
+
+                                    notifySubscribedUsers(collection, reply.getContent());
                                 })
                                 .addOnFailureListener(e -> {
                                     Log.d(TAG, "Could not add reply");
@@ -209,6 +210,84 @@ public class ViewReplies extends AppCompatActivity implements ReplyAdapter.Reply
                 .addOnFailureListener(e -> Log.e(TAG, "Error: ", e));
     }
 
+    private void notifySubscribedUsers(String collection, String reply_content) {
+        String subscriptionField = "";
+        if (collection.equals("lifePosts")) {
+            subscriptionField = "lifeSubscription";
+        } else if (collection.equals("academicPosts")) {
+            subscriptionField = "academicSubscription";
+        } else {
+            subscriptionField = "eventSubscription";
+        }
+        db.collection("users")
+                .whereEqualTo(subscriptionField, true)
+                .get()
+                .addOnCompleteListener(task ->{
+                    if (task.isSuccessful()) {
+                        for (QueryDocumentSnapshot document: task.getResult()) {
+                            String subscriber_uid = document.getId();
+                            String subscriber_name = document.getString("name");
+                            Log.d(TAG, "notifying user: " + subscriber_name);
+
+                            sendNotification(subscriber_uid, reply_content);
+                        }
+                    } else {
+                        Log.w(TAG, "error fetching subscribers", task.getException());
+                    }
+                });
+    }
+
+    private void sendNotification(String subscriber_uid, String reply_content) {
+        String message = "New reply to post \"" + truncateString(post_title, 15) + "\": " + truncateString(reply_content, 25);
+        Timestamp timestamp = Timestamp.now();
+        Notification notification = new Notification(message, timestamp);
+        db.collection("users")
+                .document(subscriber_uid)
+                .collection("notifications")
+                .add(notification)
+                .addOnSuccessListener(documentReference -> {
+                    Log.d(TAG, "Notification added for user: " + subscriber_uid);
+                })
+                .addOnFailureListener(e -> {
+                    Log.w(TAG, "Error adding notification for user: " + subscriber_uid, e);
+                });
+    }
+
+    private String truncateString(String content, int max_length) {
+        if (content.length() <= max_length) {
+            return content;
+        }
+        return content.substring(0, max_length - 3) + "...";
+    }
+
+    private void fetchNotifications() {
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+        db.collection("users").document(userId)
+                .collection("notifications")
+                .orderBy("timestamp", Query.Direction.DESCENDING)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        List<Notification> notifications = new ArrayList<>();
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            Notification notification = document.toObject(Notification.class);
+                            notifications.add(notification);
+                        }
+                        updateNotificationRecyclerView(notifications);
+                    } else {
+                        Log.w(TAG, "Error getting notifications.", task.getException());
+                    }
+                });
+    }
+
+    private void updateNotificationRecyclerView(List<Notification> notifications) {
+        RecyclerView notificationRecyclerView = findViewById(R.id.notification_recycler_view);
+        NotificationAdapter adapter = new NotificationAdapter(notifications, this);
+        notificationRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        notificationRecyclerView.setAdapter(adapter);
+    }
+
     private void displayPost() {
         db.collection(collection).document(postID)
                 .get()
@@ -216,6 +295,7 @@ public class ViewReplies extends AppCompatActivity implements ReplyAdapter.Reply
                     if (documentSnapshot.exists()) {
                         Post post = documentSnapshot.toObject(Post.class);
                         title.setText(post.getTitle());
+                        post_title = post.getTitle();
                         db.collection("users")
                                 .document(post.getUid())
                                 .get()
@@ -316,10 +396,5 @@ public class ViewReplies extends AppCompatActivity implements ReplyAdapter.Reply
         notification.setNavigationItemSelectedListener(item -> {
             return true;
         });
-    }
-
-    private void openNotifications() {
-        // open notifications screen?
-        Toast.makeText(this, "Notifications Clicked", Toast.LENGTH_SHORT).show();
     }
 }

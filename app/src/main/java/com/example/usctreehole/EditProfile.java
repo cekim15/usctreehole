@@ -18,16 +18,22 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class EditProfile extends AppCompatActivity {
@@ -75,6 +81,7 @@ public class EditProfile extends AppCompatActivity {
 
         ImageView notifications = findViewById(R.id.notification_bell);
         notifications.setOnClickListener(v -> {
+            fetchNotifications();
             dl.openDrawer(GravityCompat.END);
         });
 
@@ -269,6 +276,34 @@ public class EditProfile extends AppCompatActivity {
         if (profileImageView != null) {
             profileImageView.setImageDrawable(null);
         }
+    }
+
+    private void fetchNotifications() {
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+        db.collection("users").document(userId)
+                .collection("notifications")
+                .orderBy("timestamp", Query.Direction.DESCENDING)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        List<Notification> notifications = new ArrayList<>();
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            Notification notification = document.toObject(Notification.class);
+                            notifications.add(notification);
+                        }
+                        updateNotificationRecyclerView(notifications);
+                    } else {
+                        Log.w(TAG, "Error getting notifications.", task.getException());
+                    }
+                });
+    }
+
+    private void updateNotificationRecyclerView(List<Notification> notifications) {
+        RecyclerView notificationRecyclerView = findViewById(R.id.notification_recycler_view);
+        NotificationAdapter adapter = new NotificationAdapter(notifications, this);
+        notificationRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        notificationRecyclerView.setAdapter(adapter);
     }
 
     private void setUpToolbar() {
